@@ -218,22 +218,56 @@ export default function RackDashboard() {
               <p className="text-[11px] text-neutral-500 font-light leading-snug">Start a new project, form, or workspace.</p>
             </button>
 
-            <button className="p-5 border border-neutral-800/80 rounded-2xl bg-[#0d0d0d]/80 hover:bg-neutral-900/60 hover:border-neutral-700 transition-all text-left space-y-2 group active:scale-[0.98] cursor-pointer">
-              <div className="text-neutral-400 text-xl font-bold">💬</div>
-              <h3 className="text-xs font-semibold text-white group-hover:text-[#fff7d3]">View Responses</h3>
-              <p className="text-[11px] text-neutral-500 font-light leading-snug">Check submissions and feedback data.</p>
+                        {/* Action 1: Create */}
+            <button className="p-5 border border-neutral-800/80 rounded-2xl bg-[#0d0d0d]/80 hover:bg-neutral-900/60 hover:border-[#ab1f09]/50 transition-all text-left space-y-3 group active:scale-[0.98] cursor-pointer">
+              <div className="w-8 h-8 rounded-xl bg-[#ab1f09]/15 border border-[#ab1f09]/30 flex items-center justify-center text-[#ab1f09] group-hover:bg-[#ab1f09] group-hover:text-[#fff7d3] transition-all">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-xs font-semibold text-white group-hover:text-[#fff7d3] transition-colors">Create New Rack</h3>
+                <p className="text-[11px] text-neutral-500 font-light leading-snug mt-1">Start a new project, form, or workspace.</p>
+              </div>
             </button>
 
-            <button className="p-5 border border-neutral-800/80 rounded-2xl bg-[#0d0d0d]/80 hover:bg-neutral-900/60 hover:border-neutral-700 transition-all text-left space-y-2 group active:scale-[0.98] cursor-pointer">
-              <div className="text-neutral-400 text-xl font-bold">👥</div>
-              <h3 className="text-xs font-semibold text-white group-hover:text-[#fff7d3]">Manage Members</h3>
-              <p className="text-[11px] text-neutral-500 font-light leading-snug">Invite team members and adjust permissions.</p>
+            {/* Action 2: Responses */}
+            <button className="p-5 border border-neutral-800/80 rounded-2xl bg-[#0d0d0d]/80 hover:bg-neutral-900/60 hover:border-neutral-700 transition-all text-left space-y-3 group active:scale-[0.98] cursor-pointer">
+              <div className="w-8 h-8 rounded-xl bg-neutral-900 border border-neutral-800 flex items-center justify-center text-neutral-400 group-hover:text-[#fff7d3] group-hover:border-neutral-700 transition-colors">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.75" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-xs font-semibold text-white group-hover:text-[#fff7d3] transition-colors">View Responses</h3>
+                <p className="text-[11px] text-neutral-500 font-light leading-snug mt-1">Check submissions and feedback data.</p>
+              </div>
             </button>
 
-            <button className="p-5 border border-neutral-800/80 rounded-2xl bg-[#0d0d0d]/80 hover:bg-neutral-900/60 hover:border-neutral-700 transition-all text-left space-y-2 group active:scale-[0.98] cursor-pointer">
-              <div className="text-neutral-400 text-xl font-bold">📈</div>
-              <h3 className="text-xs font-semibold text-white group-hover:text-[#fff7d3]">Analytics</h3>
-              <p className="text-[11px] text-neutral-500 font-light leading-snug">Track overall engagement and metrics.</p>
+            {/* Action 3: Members */}
+            <button className="p-5 border border-neutral-800/80 rounded-2xl bg-[#0d0d0d]/80 hover:bg-neutral-900/60 hover:border-neutral-700 transition-all text-left space-y-3 group active:scale-[0.98] cursor-pointer">
+              <div className="w-8 h-8 rounded-xl bg-neutral-900 border border-neutral-800 flex items-center justify-center text-neutral-400 group-hover:text-[#fff7d3] group-hover:border-neutral-700 transition-colors">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.75" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-xs font-semibold text-white group-hover:text-[#fff7d3] transition-colors">Manage Members</h3>
+                <p className="text-[11px] text-neutral-500 font-light leading-snug mt-1">Invite team members and adjust permissions.</p>
+              </div>
+            </button>
+
+            {/* Action 4: Analytics */}
+            <button className="p-5 border border-neutral-800/80 rounded-2xl bg-[#0d0d0d]/80 hover:bg-neutral-900/60 hover:border-neutral-700 transition-all text-left space-y-3 group active:scale-[0.98] cursor-pointer">
+              <div className="w-8 h-8 rounded-xl bg-neutral-900 border border-neutral-800 flex items-center justify-center text-neutral-400 group-hover:text-[#fff7d3] group-hover:border-neutral-700 transition-colors">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.75" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-xs font-semibold text-white group-hover:text-[#fff7d3] transition-colors">Analytics</h3>
+                <p className="text-[11px] text-neutral-500 font-light leading-snug mt-1">Track overall engagement and metrics.</p>
+              </div>
             </button>
 
           </div>
