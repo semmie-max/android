@@ -4,25 +4,91 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
+interface Candidate {
+  id: string;
+  name: string;
+  category?: string;
+  votes: number;
+}
+
+interface FormQuestion {
+  id: string;
+  title: string;
+  type: string;
+  candidates?: Candidate[];
+}
+
+interface FormResponseItem {
+  id: string;
+  submittedAt: string;
+  email?: string;
+  votedCandidate?: string;
+  voteCount?: number;
+  totalPaid?: number;
+}
+
 interface RackForm {
   id: string;
   title: string;
   description: string;
-  status: "draft" | "published";
+  status: "draft" | "published" | "closed";
   createdAt: string;
   updatedAt: string;
-  questions: any[];
+  questions: FormQuestion[];
+  responses: FormResponseItem[];
+}
+
+interface Member {
+  id: string;
+  name: string;
+  email: string;
+  role: "Admin" | "Editor" | "Viewer";
 }
 
 export default function RackDashboard() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState("overview");
+  
+  // Navigation Tab State
+  const [activeTab, setActiveTab] = useState<
+    "overview" | "racks" | "analytics" | "profile" | "settings" | "notifications" | "security"
+  >("overview");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [displayName, setDisplayName] = useState<string>("Alex");
-  const [userEmail, setUserEmail] = useState<string>("");
-  const [forms, setForms] = useState<RackForm[]>([]);
   const [mounted, setMounted] = useState(false);
 
+  // User State
+  const [displayName, setDisplayName] = useState<string>("Alex");
+  const [userEmail, setUserEmail] = useState<string>("alex.cto@gmail.com");
+  const [userBio, setUserBio] = useState<string>("Lead Workspace Admin");
+  const [profileSavedNotice, setProfileSavedNotice] = useState(false);
+
+  // Forms & Analytics State
+  const [forms, setForms] = useState<RackForm[]>([]);
+  const [selectedFormForAnalytics, setSelectedFormForAnalytics] = useState<RackForm | null>(null);
+  const [rackFilter, setRackFilter] = useState<"all" | "published" | "draft">("all");
+  const [rackSearch, setRackSearch] = useState("");
+
+  // Members Modal State
+  const [showMembersModal, setShowMembersModal] = useState(false);
+  const [members, setMembers] = useState<Member[]>([
+    { id: "m_1", name: "Alex Robert", email: "alex.cto@gmail.com", role: "Admin" },
+    { id: "m_2", name: "Sarah Connor", email: "sarah@rack.io", role: "Editor" },
+  ]);
+  const [newMemberEmail, setNewMemberEmail] = useState("");
+  const [newMemberRole, setNewMemberRole] = useState<"Admin" | "Editor" | "Viewer">("Editor");
+
+  // Notifications State
+  const [notifications, setNotifications] = useState([
+    { id: "n_1", title: "New Response Recorded", desc: "Customer Feedback received a submission.", time: "10 mins ago", read: false },
+    { id: "n_2", title: "Contestant Voted", desc: "5 votes received for Contestant A.", time: "1 hour ago", read: false },
+    { id: "n_3", title: "System Ready", desc: "Backend database connected successfully.", time: "Yesterday", read: true },
+  ]);
+
+  // Security & Settings State
+  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
+  const [defaultCurrency, setDefaultCurrency] = useState("USD");
+  const [autoSaveEnabled, setAutoSaveEnabled] = useState(true);
+
+  // Load User & Forms
   useEffect(() => {
     setMounted(true);
     const token = localStorage.getItem("rack_token");
@@ -53,6 +119,7 @@ export default function RackDashboard() {
     router.push("/signup");
   };
 
+  // Delete Form
   const handleDeleteForm = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     const updated = forms.filter((f) => f.id !== id);
@@ -60,12 +127,53 @@ export default function RackDashboard() {
     localStorage.setItem("rack_forms", JSON.stringify(updated));
   };
 
+  // Save Profile
+  const handleSaveProfile = (e: React.FormEvent) => {
+    e.preventDefault();
+    localStorage.setItem("rack_user_name", displayName);
+    setProfileSavedNotice(true);
+    setTimeout(() => setProfileSavedNotice(false), 2000);
+  };
+
+  // Add Member
+  const handleAddMember = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newMemberEmail) return;
+    const newM: Member = {
+      id: "m_" + Date.now(),
+      name: newMemberEmail.split("@")[0],
+      email: newMemberEmail,
+      role: newMemberRole,
+    };
+    setMembers([...members, newM]);
+    setNewMemberEmail("");
+  };
+
+  const handleRemoveMember = (id: string) => {
+    if (members.length <= 1) return;
+    setMembers(members.filter((m) => m.id !== id));
+  };
+
+  // Total Metrics
+  const totalSubmissions = forms.reduce((acc, f) => acc + (f.responses?.length || 0), 0);
+  const totalRevenue = forms.reduce((acc, f) => {
+    const rev = f.responses?.reduce((rAcc, r) => rAcc + (r.totalPaid || 0), 0) || 0;
+    return acc + rev;
+  }, 0);
+
+  // Filtered Racks
+  const filteredForms = forms.filter((f) => {
+    const matchesFilter = rackFilter === "all" || f.status === rackFilter;
+    const matchesSearch = f.title.toLowerCase().includes(rackSearch.toLowerCase()) || f.description.toLowerCase().includes(rackSearch.toLowerCase());
+    return matchesFilter && matchesSearch;
+  });
+
   if (!mounted) return <div className="min-h-screen bg-[#050505]" />;
 
   return (
     <div className="min-h-screen w-full bg-[#050505] text-white flex flex-col lg:flex-row selection:bg-[#ab1f09] selection:text-[#fff7d3] font-sans antialiased">
       
-      {/* MOBILE TOP HEADER BAR */}
+      {/* MOBILE TOP HEADER */}
       <header className="lg:hidden w-full border-b border-neutral-800/60 bg-black/80 backdrop-blur-xl py-4 px-6 flex items-center justify-between sticky top-0 z-50">
         <div className="flex items-center gap-2.5">
           <div className="w-2.5 h-2.5 rounded-full bg-[#ab1f09] shadow-[0_0_8px_#ab1f09]" />
@@ -82,7 +190,7 @@ export default function RackDashboard() {
         </button>
       </header>
 
-      {/* SIDE NAVIGATION */}
+      {/* SIDEBAR NAVIGATION */}
       <aside
         className={`fixed lg:sticky top-0 left-0 z-40 h-screen w-72 bg-[#0a0a0a] border-r border-neutral-800/80 p-6 flex flex-col justify-between transition-transform duration-300 ease-in-out ${
           mobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
@@ -101,7 +209,7 @@ export default function RackDashboard() {
             </span>
           </div>
 
-          {/* Navigation Menus */}
+          {/* Navigation Items */}
           <nav className="space-y-6">
             
             {/* Main Menu */}
@@ -117,12 +225,12 @@ export default function RackDashboard() {
                 <button
                   key={item.id}
                   onClick={() => {
-                    setActiveTab(item.id);
+                    setActiveTab(item.id as any);
                     setMobileMenuOpen(false);
                   }}
                   className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-mono transition-all duration-200 flex items-center gap-3 cursor-pointer ${
                     activeTab === item.id
-                      ? "bg-[#ab1f09]/15 text-[#fff7d3] border border-[#ab1f09]/30 font-medium"
+                      ? "bg-[#ab1f09]/15 text-[#fff7d3] border border-[#ab1f09]/30 font-medium shadow-sm shadow-[#ab1f09]/20"
                       : "text-neutral-400 hover:text-white hover:bg-neutral-900/60"
                   }`}
                 >
@@ -146,12 +254,12 @@ export default function RackDashboard() {
                 <button
                   key={item.id}
                   onClick={() => {
-                    setActiveTab(item.id);
+                    setActiveTab(item.id as any);
                     setMobileMenuOpen(false);
                   }}
                   className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-mono transition-all duration-200 flex items-center justify-between cursor-pointer ${
                     activeTab === item.id
-                      ? "bg-[#ab1f09]/15 text-[#fff7d3] border border-[#ab1f09]/30"
+                      ? "bg-[#ab1f09]/15 text-[#fff7d3] border border-[#ab1f09]/30 font-medium shadow-sm shadow-[#ab1f09]/20"
                       : "text-neutral-400 hover:text-white hover:bg-neutral-900/60"
                   }`}
                 >
@@ -165,17 +273,18 @@ export default function RackDashboard() {
           </nav>
         </div>
 
-        {/* User Profile & Logout Bottom Card */}
+        {/* User Card & Logout */}
         <div className="border-t border-neutral-800/80 pt-4 space-y-3">
-          <div className="flex items-center gap-3">
+          <div
+            onClick={() => setActiveTab("profile")}
+            className="flex items-center gap-3 p-2 rounded-xl hover:bg-neutral-900/60 transition-colors cursor-pointer"
+          >
             <div className="w-9 h-9 rounded-xl bg-neutral-900 border border-neutral-700 flex items-center justify-center font-mono font-bold text-[#fff7d3] text-sm uppercase shadow-inner">
               {displayName ? displayName.charAt(0).toUpperCase() : "A"}
             </div>
             <div className="overflow-hidden">
               <h3 className="text-xs font-semibold text-white capitalize truncate">{displayName}</h3>
-              <p className="text-[10px] font-mono text-neutral-500 truncate">
-                {userEmail || "Workspace Member"}
-              </p>
+              <p className="text-[10px] font-mono text-neutral-500 truncate">{userEmail}</p>
             </div>
           </div>
           <button 
@@ -188,7 +297,7 @@ export default function RackDashboard() {
         </div>
       </aside>
 
-      {/* OVERLAY FOR MOBILE */}
+      {/* MOBILE OVERLAY */}
       {mobileMenuOpen && (
         <div
           onClick={() => setMobileMenuOpen(false)}
@@ -196,173 +305,648 @@ export default function RackDashboard() {
         />
       )}
 
-      {/* MAIN DASHBOARD CONTENT */}
-      <main className="flex-1 p-6 sm:p-10 lg:p-12 space-y-10 max-w-6xl mx-auto w-full relative z-10">
+      {/* MAIN VIEWPORT CONTAINER */}
+      <main className="flex-1 p-6 sm:p-10 lg:p-12 space-y-8 max-w-6xl mx-auto w-full relative z-10 overflow-y-auto">
         
         {/* Ambient Glow */}
         <div className="absolute top-10 right-10 w-[500px] h-[250px] bg-[#ab1f09]/10 blur-[130px] pointer-events-none rounded-full" />
 
-        {/* Header Title Section */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-800/60 pb-6">
-          <div className="space-y-1">
-            <span className="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-neutral-900 border border-neutral-800 text-[10px] font-mono tracking-wider text-[#fff7d3]">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#ab1f09]" />
-              WORKSPACE OVERVIEW
-            </span>
-            <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-white capitalize">
-              Welcome back, <span className="text-[#fff7d3]">{displayName}</span>
-            </h1>
-          </div>
-          <button 
-            onClick={() => router.push("/form")}
-            className="self-start sm:self-auto px-4 py-2.5 bg-[#ab1f09] hover:bg-[#c2240b] text-[#fff7d3] font-mono font-medium text-xs tracking-wider uppercase rounded-xl transition-all shadow-lg shadow-[#ab1f09]/20 active:scale-[0.98] flex items-center gap-2 cursor-pointer"
-          >
-            <span>+</span> NEW RACK
-          </button>
-        </div>
-
-        {/* QUICK ACTIONS SECTION */}
-        <div className="space-y-4">
-          <h2 className="text-xs font-mono tracking-widest text-neutral-400 uppercase">Quick Actions</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            
-            {/* Action 1 */}
-            <button 
-              onClick={() => router.push("/form")}
-              className="p-5 border border-neutral-800/80 rounded-2xl bg-[#0d0d0d]/80 hover:bg-neutral-900/60 hover:border-[#ab1f09]/50 transition-all text-left space-y-3 group active:scale-[0.98] cursor-pointer"
-            >
-              <div className="w-8 h-8 rounded-xl bg-[#ab1f09]/15 border border-[#ab1f09]/30 flex items-center justify-center text-[#ab1f09] group-hover:bg-[#ab1f09] group-hover:text-[#fff7d3] transition-all">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
-                </svg>
-              </div>
-              <div>
-                <h3 className="text-xs font-semibold text-white group-hover:text-[#fff7d3] transition-colors">Create New Rack</h3>
-                <p className="text-[11px] text-neutral-500 font-light leading-snug mt-1">Start a new project or form.</p>
-              </div>
-            </button>
-
-            {/* Action 2 */}
-            <button className="p-5 border border-neutral-800/80 rounded-2xl bg-[#0d0d0d]/80 hover:bg-neutral-900/60 hover:border-neutral-700 transition-all text-left space-y-3 group active:scale-[0.98] cursor-pointer">
-              <div className="w-8 h-8 rounded-xl bg-neutral-900 border border-neutral-800 flex items-center justify-center text-neutral-400 group-hover:text-[#fff7d3] group-hover:border-neutral-700 transition-colors">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.75" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                </svg>
-              </div>
-              <div>
-                <h3 className="text-xs font-semibold text-white group-hover:text-[#fff7d3] transition-colors">View Responses</h3>
-                <p className="text-[11px] text-neutral-500 font-light leading-snug mt-1">Check submissions and feedback data.</p>
-              </div>
-            </button>
-
-            {/* Action 3 */}
-            <button className="p-5 border border-neutral-800/80 rounded-2xl bg-[#0d0d0d]/80 hover:bg-neutral-900/60 hover:border-neutral-700 transition-all text-left space-y-3 group active:scale-[0.98] cursor-pointer">
-              <div className="w-8 h-8 rounded-xl bg-neutral-900 border border-neutral-800 flex items-center justify-center text-neutral-400 group-hover:text-[#fff7d3] group-hover:border-neutral-700 transition-colors">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.75" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-              </div>
-              <div>
-                <h3 className="text-xs font-semibold text-white group-hover:text-[#fff7d3] transition-colors">Manage Members</h3>
-                <p className="text-[11px] text-neutral-500 font-light leading-snug mt-1">Invite members and adjust permissions.</p>
-              </div>
-            </button>
-
-            {/* Action 4 */}
-            <button className="p-5 border border-neutral-800/80 rounded-2xl bg-[#0d0d0d]/80 hover:bg-neutral-900/60 hover:border-neutral-700 transition-all text-left space-y-3 group active:scale-[0.98] cursor-pointer">
-              <div className="w-8 h-8 rounded-xl bg-neutral-900 border border-neutral-800 flex items-center justify-center text-neutral-400 group-hover:text-[#fff7d3] group-hover:border-neutral-700 transition-colors">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.75" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                </svg>
-              </div>
-              <div>
-                <h3 className="text-xs font-semibold text-white group-hover:text-[#fff7d3] transition-colors">Analytics</h3>
-                <p className="text-[11px] text-neutral-500 font-light leading-snug mt-1">Track overall engagement and metrics.</p>
-              </div>
-            </button>
-
-          </div>
-        </div>
-
-        {/* ACTIVE & DRAFT RACKS */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xs font-mono tracking-widest text-neutral-400 uppercase">Your Racks</h2>
-            <span className="text-[11px] font-mono text-neutral-500">TOTAL: {forms.length}</span>
-          </div>
-
-          {forms.length === 0 ? (
-            <div className="border border-dashed border-neutral-800/90 rounded-2xl p-10 text-center bg-[#0d0d0d]/40 backdrop-blur-xl flex flex-col items-center justify-center space-y-4">
-              <div className="w-12 h-12 rounded-2xl bg-neutral-900 border border-neutral-800 flex items-center justify-center text-[#ab1f09] font-mono text-xl">
-                ❖
-              </div>
-              <div className="space-y-1 max-w-md">
-                <h3 className="text-base font-medium text-white">No active racks created yet</h3>
-                <p className="text-xs text-neutral-500 font-light leading-relaxed">
-                  Create your first Rack to start building and managing information.
-                </p>
+        {/* ========================================================= */}
+        {/* TAB 1: OVERVIEW / DASHBOARD */}
+        {/* ========================================================= */}
+        {activeTab === "overview" && (
+          <div className="space-y-10">
+            {/* Header Banner */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-800/60 pb-6">
+              <div className="space-y-1">
+                <span className="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-neutral-900 border border-neutral-800 text-[10px] font-mono tracking-wider text-[#fff7d3]">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#ab1f09]" />
+                  WORKSPACE OVERVIEW
+                </span>
+                <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-white capitalize">
+                  Welcome back, <span className="text-[#fff7d3]">{displayName}</span>
+                </h1>
               </div>
               <button 
                 onClick={() => router.push("/form")}
-                className="px-5 py-2.5 bg-[#fff7d3] hover:bg-white text-black font-mono font-medium text-xs tracking-wider uppercase rounded-xl transition-all shadow-md mt-2 cursor-pointer"
+                className="self-start sm:self-auto px-5 py-2.5 bg-[#ab1f09] hover:bg-[#c2240b] text-[#fff7d3] font-mono font-medium text-xs tracking-wider uppercase rounded-xl transition-all shadow-lg shadow-[#ab1f09]/20 cursor-pointer"
               >
-                + Create First Rack
+                + NEW RACK
               </button>
             </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {forms.map((form) => (
-                <div
-                  key={form.id}
-                  onClick={() => router.push(`/form?id=${form.id}`)}
-                  className="p-6 border border-neutral-800/80 rounded-2xl bg-[#0d0d0d]/90 hover:border-neutral-700 transition-all cursor-pointer flex flex-col justify-between group space-y-4 relative overflow-hidden"
+
+            {/* Quick Actions */}
+            <div className="space-y-4">
+              <h2 className="text-xs font-mono tracking-widest text-neutral-400 uppercase">Quick Actions</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                
+                {/* 1. Create New */}
+                <button 
+                  onClick={() => router.push("/form")}
+                  className="p-5 border border-neutral-800/80 rounded-2xl bg-[#0d0d0d]/80 hover:bg-neutral-900/60 hover:border-[#ab1f09]/50 transition-all text-left space-y-3 group cursor-pointer"
                 >
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span
-                        className={`text-[9px] font-mono px-2 py-0.5 rounded uppercase font-bold tracking-wider ${
-                          form.status === "published"
-                            ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
-                            : "bg-amber-500/15 text-amber-400 border border-amber-500/30"
-                        }`}
-                      >
-                        {form.status === "published" ? "● LIVE" : "⏳ DRAFT"}
-                      </span>
-                      <button
-                        onClick={(e) => handleDeleteForm(form.id, e)}
-                        className="text-neutral-500 hover:text-red-400 p-1 transition-colors text-xs cursor-pointer"
-                        title="Delete Rack"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                    <h3 className="text-sm font-semibold text-white group-hover:text-[#fff7d3] transition-colors truncate">
-                      {form.title}
-                    </h3>
-                    <p className="text-[11px] text-neutral-400 font-light line-clamp-2">
-                      {form.description || "No description provided."}
+                  <div className="w-8 h-8 rounded-xl bg-[#ab1f09]/15 border border-[#ab1f09]/30 flex items-center justify-center text-[#ab1f09] group-hover:bg-[#ab1f09] group-hover:text-[#fff7d3] transition-all">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-xs font-semibold text-white group-hover:text-[#fff7d3]">Create New Rack</h3>
+                    <p className="text-[11px] text-neutral-500 font-light leading-snug mt-1">Start a form or voting ballot.</p>
+                  </div>
+                </button>
+
+                {/* 2. View Responses */}
+                <button 
+                  onClick={() => setActiveTab("analytics")}
+                  className="p-5 border border-neutral-800/80 rounded-2xl bg-[#0d0d0d]/80 hover:bg-neutral-900/60 hover:border-[#ab1f09]/50 transition-all text-left space-y-3 group cursor-pointer"
+                >
+                  <div className="w-8 h-8 rounded-xl bg-neutral-900 border border-neutral-800 flex items-center justify-center text-neutral-400 group-hover:text-[#fff7d3] transition-colors">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.75" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-xs font-semibold text-white group-hover:text-[#fff7d3]">View Responses</h3>
+                    <p className="text-[11px] text-neutral-500 font-light leading-snug mt-1">Check {totalSubmissions} submissions.</p>
+                  </div>
+                </button>
+
+                {/* 3. Manage Members */}
+                <button 
+                  onClick={() => setShowMembersModal(true)}
+                  className="p-5 border border-neutral-800/80 rounded-2xl bg-[#0d0d0d]/80 hover:bg-neutral-900/60 hover:border-[#ab1f09]/50 transition-all text-left space-y-3 group cursor-pointer"
+                >
+                  <div className="w-8 h-8 rounded-xl bg-neutral-900 border border-neutral-800 flex items-center justify-center text-neutral-400 group-hover:text-[#fff7d3] transition-colors">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.75" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-xs font-semibold text-white group-hover:text-[#fff7d3]">Manage Members</h3>
+                    <p className="text-[11px] text-neutral-500 font-light leading-snug mt-1">{members.length} Active members.</p>
+                  </div>
+                </button>
+
+                {/* 4. Analytics */}
+                <button 
+                  onClick={() => setActiveTab("analytics")}
+                  className="p-5 border border-neutral-800/80 rounded-2xl bg-[#0d0d0d]/80 hover:bg-neutral-900/60 hover:border-[#ab1f09]/50 transition-all text-left space-y-3 group cursor-pointer"
+                >
+                  <div className="w-8 h-8 rounded-xl bg-neutral-900 border border-neutral-800 flex items-center justify-center text-neutral-400 group-hover:text-[#fff7d3] transition-colors">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.75" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-xs font-semibold text-white group-hover:text-[#fff7d3]">Analytics</h3>
+                    <p className="text-[11px] text-neutral-500 font-light leading-snug mt-1">${totalRevenue.toFixed(2)} Revenue tracked.</p>
+                  </div>
+                </button>
+
+              </div>
+            </div>
+
+            {/* Racks Grid */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xs font-mono tracking-widest text-neutral-400 uppercase">Your Racks</h2>
+                <button
+                  onClick={() => setActiveTab("racks")}
+                  className="text-xs font-mono text-[#ab1f09] hover:underline cursor-pointer"
+                >
+                  View All ({forms.length}) →
+                </button>
+              </div>
+
+              {forms.length === 0 ? (
+                <div className="border border-dashed border-neutral-800/90 rounded-2xl p-10 text-center bg-[#0d0d0d]/40 backdrop-blur-xl flex flex-col items-center justify-center space-y-4">
+                  <div className="w-12 h-12 rounded-2xl bg-neutral-900 border border-neutral-800 flex items-center justify-center text-[#ab1f09] font-mono text-xl">
+                    ❖
+                  </div>
+                  <div className="space-y-1 max-w-md">
+                    <h3 className="text-base font-medium text-white">No active racks created yet</h3>
+                    <p className="text-xs text-neutral-500 font-light leading-relaxed">
+                      Create your first Rack to start building forms and collecting responses.
                     </p>
                   </div>
+                  <button 
+                    onClick={() => router.push("/form")}
+                    className="px-5 py-2.5 bg-[#fff7d3] hover:bg-white text-black font-mono font-medium text-xs tracking-wider uppercase rounded-xl transition-all shadow-md mt-2 cursor-pointer"
+                  >
+                    + Create First Rack
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {forms.slice(0, 6).map((form) => (
+                    <div
+                      key={form.id}
+                      onClick={() => router.push(`/form?id=${form.id}`)}
+                      className="p-6 border border-neutral-800/80 rounded-2xl bg-[#0d0d0d]/90 hover:border-neutral-700 transition-all cursor-pointer flex flex-col justify-between group space-y-4 relative"
+                    >
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span
+                            className={`text-[9px] font-mono px-2 py-0.5 rounded uppercase font-bold tracking-wider ${
+                              form.status === "published"
+                                ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
+                                : "bg-amber-500/15 text-amber-400 border border-amber-500/30"
+                            }`}
+                          >
+                            {form.status === "published" ? "● LIVE" : "⏳ DRAFT"}
+                          </span>
+                          <button
+                            onClick={(e) => handleDeleteForm(form.id, e)}
+                            className="text-neutral-500 hover:text-red-400 p-1 transition-colors text-xs cursor-pointer"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                        <h3 className="text-sm font-semibold text-white group-hover:text-[#fff7d3] transition-colors truncate">
+                          {form.title}
+                        </h3>
+                        <p className="text-[11px] text-neutral-400 font-light line-clamp-2">
+                          {form.description || "No description provided."}
+                        </p>
+                      </div>
 
-                  <div className="pt-3 border-t border-neutral-800/80 flex items-center justify-between text-[10px] font-mono text-neutral-500">
-                    <span>{form.questions?.length || 0} Questions</span>
-                    <span className="text-[#ab1f09] group-hover:underline">Resume Editing →</span>
+                      <div className="pt-3 border-t border-neutral-800/80 flex items-center justify-between text-[10px] font-mono text-neutral-500">
+                        <span>{form.responses?.length || 0} Submissions</span>
+                        <span className="text-[#ab1f09] group-hover:underline">Edit Rack →</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ========================================================= */}
+        {/* TAB 2: MY RACKS (FULL LIST & FILTERS) */}
+        {/* ========================================================= */}
+        {activeTab === "racks" && (
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-800 pb-6">
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-bold text-white">My Racks</h1>
+                <p className="text-xs text-neutral-400 mt-1">Manage, filter, and modify all your active and draft forms.</p>
+              </div>
+              <button
+                onClick={() => router.push("/form")}
+                className="px-4 py-2 bg-[#ab1f09] hover:bg-[#c2240b] text-[#fff7d3] text-xs font-mono font-medium rounded-xl self-start sm:self-auto cursor-pointer"
+              >
+                + New Rack
+              </button>
+            </div>
+
+            {/* Filter & Search Bar */}
+            <div className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-2xl bg-[#0d0d0d] border border-neutral-800">
+              <div className="flex items-center gap-2 text-xs font-mono">
+                {(["all", "published", "draft"] as const).map((filter) => (
+                  <button
+                    key={filter}
+                    onClick={() => setRackFilter(filter)}
+                    className={`px-3 py-1.5 rounded-lg uppercase tracking-wider transition-all cursor-pointer ${
+                      rackFilter === filter ? "bg-[#ab1f09] text-[#fff7d3] font-bold" : "text-neutral-400 hover:text-white"
+                    }`}
+                  >
+                    {filter}
+                  </button>
+                ))}
+              </div>
+
+              <input
+                type="text"
+                value={rackSearch}
+                onChange={(e) => setRackSearch(e.target.value)}
+                placeholder="Search racks by title..."
+                className="px-3.5 py-1.5 bg-[#111111] border border-neutral-800 rounded-xl text-xs text-white outline-none focus:border-[#ab1f09] w-64"
+              />
+            </div>
+
+            {/* Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredForms.map((form) => (
+                <div
+                  key={form.id}
+                  className="p-6 border border-neutral-800 rounded-2xl bg-[#0d0d0d] space-y-4 relative"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-neutral-900 border border-neutral-800 text-neutral-300 uppercase">
+                      {form.status}
+                    </span>
+                    <button
+                      onClick={(e) => handleDeleteForm(form.id, e)}
+                      className="text-neutral-500 hover:text-red-400 text-xs cursor-pointer"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                  <h3 className="text-base font-semibold text-white truncate">{form.title}</h3>
+                  <p className="text-xs text-neutral-400 font-light line-clamp-2">{form.description}</p>
+                  
+                  <div className="pt-3 border-t border-neutral-800 flex items-center justify-between text-xs font-mono">
+                    <span className="text-neutral-500">{form.responses?.length || 0} Responses</span>
+                    <button
+                      onClick={() => router.push(`/form?id=${form.id}`)}
+                      className="text-[#ab1f09] hover:underline cursor-pointer"
+                    >
+                      Open Studio →
+                    </button>
                   </div>
                 </div>
               ))}
             </div>
-          )}
-        </div>
-
-        {/* RECENT ACTIVITY */}
-        <div className="space-y-4">
-          <h2 className="text-xs font-mono tracking-widest text-neutral-400 uppercase">Recent Activity</h2>
-          <div className="p-6 border border-neutral-800/80 rounded-2xl bg-[#0d0d0d]/80 text-xs font-mono text-neutral-500">
-            {forms.length > 0
-              ? `Last updated: ${forms[0]?.title} (${forms[0]?.updatedAt})`
-              : "No recent updates yet."}
           </div>
-        </div>
+        )}
+
+        {/* ========================================================= */}
+        {/* TAB 3: ANALYTICS */}
+        {/* ========================================================= */}
+        {activeTab === "analytics" && (
+          <div className="space-y-6">
+            <div className="border-b border-neutral-800 pb-6">
+              <h1 className="text-2xl sm:text-3xl font-bold text-white">Live Analytics</h1>
+              <p className="text-xs text-neutral-400 mt-1">Real-time performance, contestant votes, and submissions.</p>
+            </div>
+
+            {/* Stats */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="p-6 rounded-2xl bg-[#0d0d0d] border border-neutral-800 space-y-2">
+                <span className="text-[10px] font-mono text-neutral-500 uppercase tracking-widest">Total Forms</span>
+                <div className="text-3xl font-bold font-mono text-white">{forms.length}</div>
+              </div>
+              <div className="p-6 rounded-2xl bg-[#0d0d0d] border border-neutral-800 space-y-2">
+                <span className="text-[10px] font-mono text-neutral-500 uppercase tracking-widest">Submissions Collected</span>
+                <div className="text-3xl font-bold font-mono text-emerald-400">{totalSubmissions}</div>
+              </div>
+              <div className="p-6 rounded-2xl bg-[#0d0d0d] border border-neutral-800 space-y-2">
+                <span className="text-[10px] font-mono text-neutral-500 uppercase tracking-widest">Paid Voting Revenue</span>
+                <div className="text-3xl font-bold font-mono text-[#fff7d3]">${totalRevenue.toFixed(2)}</div>
+              </div>
+            </div>
+
+            {/* Rack Breakdown */}
+            <div className="p-6 rounded-2xl bg-[#0d0d0d] border border-neutral-800 space-y-4">
+              <h3 className="text-sm font-mono text-[#fff7d3] uppercase">Rack Submissions Log</h3>
+              {forms.length === 0 ? (
+                <div className="text-xs font-mono text-neutral-500 py-4">No forms created yet.</div>
+              ) : (
+                <div className="divide-y divide-neutral-800">
+                  {forms.map((f) => (
+                    <div key={f.id} className="py-3 flex items-center justify-between text-xs font-mono">
+                      <div>
+                        <div className="font-semibold text-white">{f.title}</div>
+                        <div className="text-[10px] text-neutral-500">{f.responses?.length || 0} Submissions • Status: {f.status}</div>
+                      </div>
+                      <button
+                        onClick={() => setSelectedFormForAnalytics(f)}
+                        className="px-3 py-1.5 rounded-lg bg-neutral-900 border border-neutral-800 hover:text-[#fff7d3] cursor-pointer"
+                      >
+                        View Breakdown →
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ========================================================= */}
+        {/* TAB 4: USER PROFILE */}
+        {/* ========================================================= */}
+        {activeTab === "profile" && (
+          <div className="max-w-2xl mx-auto space-y-6">
+            <div className="border-b border-neutral-800 pb-6">
+              <h1 className="text-2xl font-bold text-white">Profile Information</h1>
+              <p className="text-xs text-neutral-400 mt-1">Manage your account details and display badge.</p>
+            </div>
+
+            <form onSubmit={handleSaveProfile} className="p-6 sm:p-8 rounded-2xl bg-[#0d0d0d] border border-neutral-800 space-y-6">
+              
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 rounded-2xl bg-[#ab1f09] flex items-center justify-center font-mono font-bold text-xl text-[#fff7d3] shadow-lg shadow-[#ab1f09]/20">
+                  {displayName.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-white capitalize">{displayName}</h3>
+                  <p className="text-xs font-mono text-neutral-500">{userEmail}</p>
+                </div>
+              </div>
+
+              <div className="space-y-4 border-t border-neutral-800 pt-6">
+                <div>
+                  <label className="block text-xs font-mono text-neutral-400 uppercase mb-1.5">Full Name</label>
+                  <input
+                    type="text"
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-[#111111] border border-neutral-800 rounded-xl text-xs text-white focus:border-[#ab1f09] outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-mono text-neutral-400 uppercase mb-1.5">Email Address</label>
+                  <input
+                    type="email"
+                    disabled
+                    value={userEmail}
+                    className="w-full px-4 py-2.5 bg-[#0a0a0a] border border-neutral-800/60 rounded-xl text-xs text-neutral-500 outline-none cursor-not-allowed"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-mono text-neutral-400 uppercase mb-1.5">Role / Bio</label>
+                  <input
+                    type="text"
+                    value={userBio}
+                    onChange={(e) => setUserBio(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-[#111111] border border-neutral-800 rounded-xl text-xs text-white focus:border-[#ab1f09] outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between pt-4 border-t border-neutral-800">
+                <span className="text-xs font-mono text-emerald-400">
+                  {profileSavedNotice ? "✓ Profile Updated!" : ""}
+                </span>
+                <button
+                  type="submit"
+                  className="px-5 py-2.5 bg-[#ab1f09] hover:bg-[#c2240b] text-[#fff7d3] font-mono text-xs font-semibold rounded-xl transition-all shadow-md shadow-[#ab1f09]/20 cursor-pointer"
+                >
+                  Save Profile
+                </button>
+              </div>
+
+            </form>
+          </div>
+        )}
+
+        {/* ========================================================= */}
+        {/* TAB 5: SETTINGS */}
+        {/* ========================================================= */}
+        {activeTab === "settings" && (
+          <div className="max-w-2xl mx-auto space-y-6">
+            <div className="border-b border-neutral-800 pb-6">
+              <h1 className="text-2xl font-bold text-white">Workspace Settings</h1>
+              <p className="text-xs text-neutral-400 mt-1">Configure your default currencies, auto-save, and workspace rules.</p>
+            </div>
+
+            <div className="p-6 sm:p-8 rounded-2xl bg-[#0d0d0d] border border-neutral-800 space-y-6">
+              
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-xs font-semibold text-white">Default Currency</h4>
+                  <p className="text-[11px] text-neutral-500">Used for Paid Voting contestant ballots</p>
+                </div>
+                <select
+                  value={defaultCurrency}
+                  onChange={(e) => setDefaultCurrency(e.target.value)}
+                  className="px-3 py-1.5 bg-[#111111] border border-neutral-800 rounded-lg text-xs font-mono text-white outline-none cursor-pointer"
+                >
+                  <option value="USD">USD ($)</option>
+                  <option value="EUR">EUR (€)</option>
+                  <option value="GBP">GBP (£)</option>
+                  <option value="NGN">NGN (₦)</option>
+                </select>
+              </div>
+
+              <div className="flex items-center justify-between border-t border-neutral-800 pt-4">
+                <div>
+                  <h4 className="text-xs font-semibold text-white">Auto-Save Cloud Drafts</h4>
+                  <p className="text-[11px] text-neutral-500">Automatically save every keystroke in Form Studio</p>
+                </div>
+                <button
+                  onClick={() => setAutoSaveEnabled(!autoSaveEnabled)}
+                  className={`w-8 h-4.5 flex items-center rounded-full p-0.5 transition-colors cursor-pointer ${
+                    autoSaveEnabled ? "bg-[#ab1f09]" : "bg-neutral-800"
+                  }`}
+                >
+                  <div
+                    className={`bg-white w-3.5 h-3.5 rounded-full shadow transform transition-transform ${
+                      autoSaveEnabled ? "translate-x-3.5" : "translate-x-0"
+                    }`}
+                  />
+                </button>
+              </div>
+
+            </div>
+          </div>
+        )}
+
+        {/* ========================================================= */}
+        {/* TAB 6: NOTIFICATIONS */}
+        {/* ========================================================= */}
+        {activeTab === "notifications" && (
+          <div className="max-w-2xl mx-auto space-y-6">
+            <div className="flex items-center justify-between border-b border-neutral-800 pb-6">
+              <div>
+                <h1 className="text-2xl font-bold text-white">Notifications</h1>
+                <p className="text-xs text-neutral-400 mt-1">Real-time alerts for form activity and submissions.</p>
+              </div>
+              <button
+                onClick={() => setNotifications(notifications.map((n) => ({ ...n, read: true })))}
+                className="text-xs font-mono text-[#ab1f09] hover:underline cursor-pointer"
+              >
+                Mark All as Read
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              {notifications.map((notif) => (
+                <div
+                  key={notif.id}
+                  className={`p-4 rounded-2xl border transition-all flex items-start justify-between ${
+                    notif.read ? "bg-[#0d0d0d] border-neutral-800/80 text-neutral-400" : "bg-[#111111] border-[#ab1f09]/40 text-white"
+                  }`}
+                >
+                  <div className="space-y-1">
+                    <div className="text-xs font-semibold">{notif.title}</div>
+                    <div className="text-[11px] text-neutral-400">{notif.desc}</div>
+                  </div>
+                  <span className="text-[10px] font-mono text-neutral-500 whitespace-nowrap">{notif.time}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ========================================================= */}
+        {/* TAB 7: SECURITY */}
+        {/* ========================================================= */}
+        {activeTab === "security" && (
+          <div className="max-w-2xl mx-auto space-y-6">
+            <div className="border-b border-neutral-800 pb-6">
+              <h1 className="text-2xl font-bold text-white">Security & Access</h1>
+              <p className="text-xs text-neutral-400 mt-1">Manage authentication, 2FA, and active tokens.</p>
+            </div>
+
+            <div className="p-6 sm:p-8 rounded-2xl bg-[#0d0d0d] border border-neutral-800 space-y-6">
+              
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-xs font-semibold text-white">Two-Factor Authentication (2FA)</h4>
+                  <p className="text-[11px] text-neutral-500">Require an authenticator code upon login</p>
+                </div>
+                <button
+                  onClick={() => setTwoFactorEnabled(!twoFactorEnabled)}
+                  className={`w-8 h-4.5 flex items-center rounded-full p-0.5 transition-colors cursor-pointer ${
+                    twoFactorEnabled ? "bg-[#ab1f09]" : "bg-neutral-800"
+                  }`}
+                >
+                  <div
+                    className={`bg-white w-3.5 h-3.5 rounded-full shadow transform transition-transform ${
+                      twoFactorEnabled ? "translate-x-3.5" : "translate-x-0"
+                    }`}
+                  />
+                </button>
+              </div>
+
+              <div className="border-t border-neutral-800 pt-4 space-y-3">
+                <h4 className="text-xs font-semibold text-white">Active Session Token</h4>
+                <div className="p-3 bg-black border border-neutral-800 rounded-xl font-mono text-[11px] text-neutral-400 truncate">
+                  JWT_TOKEN_ACTIVE_09f8e4a938b8c199
+                </div>
+              </div>
+
+            </div>
+          </div>
+        )}
+
+        {/* ========================================================= */}
+        {/* MODAL: MANAGE TEAM MEMBERS */}
+        {/* ========================================================= */}
+        {showMembersModal && (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="w-full max-w-lg bg-[#0d0d0d] border border-neutral-800 rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xl">
+              
+              <div className="flex items-center justify-between border-b border-neutral-800 pb-4">
+                <div>
+                  <h3 className="text-base font-bold text-white">Workspace Members</h3>
+                  <p className="text-xs text-neutral-400">Invite teammates and adjust access roles.</p>
+                </div>
+                <button
+                  onClick={() => setShowMembersModal(false)}
+                  className="text-neutral-500 hover:text-white text-xs font-mono cursor-pointer"
+                >
+                  CLOSE ✕
+                </button>
+              </div>
+
+              {/* Invite Form */}
+              <form onSubmit={handleAddMember} className="flex gap-2">
+                <input
+                  type="email"
+                  required
+                  value={newMemberEmail}
+                  onChange={(e) => setNewMemberEmail(e.target.value)}
+                  placeholder="colleague@company.com"
+                  className="flex-1 px-3.5 py-2 bg-[#111111] border border-neutral-800 rounded-xl text-xs text-white outline-none focus:border-[#ab1f09]"
+                />
+                <select
+                  value={newMemberRole}
+                  onChange={(e) => setNewMemberRole(e.target.value as any)}
+                  className="px-2.5 py-2 bg-[#111111] border border-neutral-800 rounded-xl text-xs font-mono text-white outline-none cursor-pointer"
+                >
+                  <option value="Editor">Editor</option>
+                  <option value="Admin">Admin</option>
+                  <option value="Viewer">Viewer</option>
+                </select>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-[#ab1f09] hover:bg-[#c2240b] text-[#fff7d3] font-mono text-xs font-semibold rounded-xl cursor-pointer"
+                >
+                  Invite
+                </button>
+              </form>
+
+              {/* Members List */}
+              <div className="space-y-2 max-h-60 overflow-y-auto">
+                {members.map((m) => (
+                  <div key={m.id} className="p-3 bg-[#111111] border border-neutral-800 rounded-xl flex items-center justify-between text-xs">
+                    <div>
+                      <div className="font-semibold text-white">{m.name}</div>
+                      <div className="text-[10px] text-neutral-500 font-mono">{m.email}</div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-neutral-900 text-[#fff7d3] border border-neutral-800">
+                        {m.role}
+                      </span>
+                      {members.length > 1 && (
+                        <button
+                          onClick={() => handleRemoveMember(m.id)}
+                          className="text-neutral-500 hover:text-red-400 text-xs"
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+            </div>
+          </div>
+        )}
+
+        {/* ========================================================= */}
+        {/* MODAL: SINGLE RACK BREAKDOWN */}
+        {/* ========================================================= */}
+        {selectedFormForAnalytics && (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="w-full max-w-2xl bg-[#0d0d0d] border border-neutral-800 rounded-3xl p-6 sm:p-8 space-y-6 max-h-[85vh] overflow-y-auto shadow-2xl">
+              <div className="flex items-center justify-between border-b border-neutral-800 pb-4">
+                <div>
+                  <h3 className="text-base font-bold text-white">{selectedFormForAnalytics.title}</h3>
+                  <p className="text-xs text-neutral-400">Total Responses: {selectedFormForAnalytics.responses?.length || 0}</p>
+                </div>
+                <button
+                  onClick={() => setSelectedFormForAnalytics(null)}
+                  className="text-neutral-500 hover:text-white text-xs font-mono cursor-pointer"
+                >
+                  CLOSE ✕
+                </button>
+              </div>
+
+              {/* Contestant Breakdown */}
+              {selectedFormForAnalytics.questions.find((q) => q.type === "paid_voting") && (
+                <div className="space-y-3">
+                  <h4 className="text-xs font-mono text-[#fff7d3] uppercase">Contestant Leaderboard</h4>
+                  <div className="space-y-2">
+                    {selectedFormForAnalytics.questions
+                      .find((q) => q.type === "paid_voting")
+                      ?.candidates?.map((cand) => (
+                        <div key={cand.id} className="p-3 bg-[#111111] border border-neutral-800 rounded-xl flex items-center justify-between text-xs font-mono">
+                          <span className="text-white font-semibold">{cand.name}</span>
+                          <span className="text-[#ab1f09] font-bold">{cand.votes} Votes</span>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Submissions List */}
+              <div className="space-y-2">
+                <h4 className="text-xs font-mono text-neutral-400 uppercase">Submissions</h4>
+                {selectedFormForAnalytics.responses?.length === 0 ? (
+                  <div className="text-xs text-neutral-500 italic py-4">No submissions recorded yet.</div>
+                ) : (
+                  <div className="space-y-2">
+                    {selectedFormForAnalytics.responses?.map((r) => (
+                      <div key={r.id} className="p-3 bg-[#111111] border border-neutral-800 rounded-xl text-xs font-mono flex items-center justify-between">
+                        <span className="text-white">{r.email || "Anonymous"}</span>
+                        <span className="text-neutral-500">{r.submittedAt}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
       </main>
 
