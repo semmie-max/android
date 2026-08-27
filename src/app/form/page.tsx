@@ -3,13 +3,6 @@
 import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import {
-  FiArrowLeft,
-  FiCheckCircle,
-  FiCopy,
-  FiTrash2,
-  FiPlusCircle,
-} from "react-icons/fi";
 
 interface FormQuestion {
   id: string;
@@ -35,10 +28,9 @@ function FormBuilderContent() {
   const formIdParam = searchParams.get("id");
 
   const [formId, setFormId] = useState<string>("");
-  const [title, setTitle] = useState("Untitled Form");
-  const [description, setDescription] = useState("Form description");
+  const [title, setTitle] = useState("Untitled Rack Form");
+  const [description, setDescription] = useState("Configure and collect data seamlessly.");
   const [status, setStatus] = useState<"draft" | "published">("draft");
-  const [activeTab, setActiveTab] = useState<"questions" | "responses" | "settings">("questions");
   const [savedNotice, setSavedNotice] = useState(false);
 
   const [questions, setQuestions] = useState<FormQuestion[]>([
@@ -51,7 +43,7 @@ function FormBuilderContent() {
     },
   ]);
 
-  // Load existing form or initialize new one
+  // Load existing form or initialize new ID
   useEffect(() => {
     const existingForms: RackForm[] = JSON.parse(localStorage.getItem("rack_forms") || "[]");
 
@@ -67,19 +59,18 @@ function FormBuilderContent() {
       }
     }
 
-    // New Form ID
     const newId = "rack_" + Date.now();
     setFormId(newId);
   }, [formIdParam]);
 
-  // Auto-Save Draft to LocalStorage on every change
+  // Auto-Save Draft to LocalStorage
   useEffect(() => {
     if (!formId) return;
 
     const existingForms: RackForm[] = JSON.parse(localStorage.getItem("rack_forms") || "[]");
     const currentForm: RackForm = {
       id: formId,
-      title: title || "Untitled Form",
+      title: title || "Untitled Rack Form",
       description: description || "",
       status: status,
       createdAt: new Date().toLocaleDateString(),
@@ -96,11 +87,11 @@ function FormBuilderContent() {
 
     localStorage.setItem("rack_forms", JSON.stringify(existingForms));
     setSavedNotice(true);
-    const timer = setTimeout(() => setSavedNotice(false), 1800);
+    const timer = setTimeout(() => setSavedNotice(false), 1500);
     return () => clearTimeout(timer);
   }, [formId, title, description, questions, status]);
 
-  // Add new question
+  // Question actions
   const handleAddQuestion = () => {
     const newQ: FormQuestion = {
       id: "q_" + Date.now(),
@@ -112,7 +103,6 @@ function FormBuilderContent() {
     setQuestions([...questions, newQ]);
   };
 
-  // Duplicate question
   const handleDuplicate = (index: number) => {
     const target = questions[index];
     const duplicated: FormQuestion = {
@@ -125,27 +115,23 @@ function FormBuilderContent() {
     setQuestions(updated);
   };
 
-  // Delete question
   const handleDeleteQuestion = (id: string) => {
     if (questions.length === 1) return;
     setQuestions(questions.filter((q) => q.id !== id));
   };
 
-  // Add option to question
   const handleAddOption = (qIndex: number) => {
     const updated = [...questions];
     updated[qIndex].options.push(`Option ${updated[qIndex].options.length + 1}`);
     setQuestions(updated);
   };
 
-  // Update option text
   const handleOptionChange = (qIndex: number, optIndex: number, text: string) => {
     const updated = [...questions];
     updated[qIndex].options[optIndex] = text;
     setQuestions(updated);
   };
 
-  // Delete option
   const handleDeleteOption = (qIndex: number, optIndex: number) => {
     const updated = [...questions];
     if (updated[qIndex].options.length <= 1) return;
@@ -153,7 +139,6 @@ function FormBuilderContent() {
     setQuestions(updated);
   };
 
-  // Publish Form
   const handlePublish = () => {
     setStatus("published");
     alert("🎉 Your Rack Form is now Published!");
@@ -161,25 +146,24 @@ function FormBuilderContent() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F0F2F5] text-slate-800 font-sans pb-16 selection:bg-purple-500/20">
+    <div className="min-h-screen w-full bg-[#050505] text-white flex flex-col selection:bg-[#ab1f09] selection:text-[#fff7d3] font-sans antialiased">
       
-      {/* Top Navigation Bar */}
-      <header className="sticky top-0 z-50 bg-white border-b border-slate-200 px-4 py-2.5 flex items-center justify-between shadow-sm">
+      {/* Top Header Bar */}
+      <header className="w-full border-b border-neutral-800/80 bg-black/60 backdrop-blur-xl py-3.5 px-4 sm:px-8 flex items-center justify-between sticky top-0 z-50">
         
-        {/* Left Side: Back to Dashboard & Form Title */}
+        {/* Left: Back Link & Form Title */}
         <div className="flex items-center gap-3">
           <Link
             href="/dashboard"
-            className="p-2 hover:bg-slate-100 rounded-lg text-slate-500 hover:text-slate-900 transition-colors flex items-center gap-1.5 text-xs font-mono"
+            className="p-2 rounded-lg bg-neutral-900 border border-neutral-800 text-neutral-400 hover:text-[#fff7d3] hover:border-neutral-700 transition-all flex items-center gap-1.5 text-xs font-mono"
             title="Back to Dashboard"
           >
-            <FiArrowLeft className="w-4 h-4" />
-            <span className="hidden sm:inline">DASHBOARD</span>
+            <span>←</span> <span className="hidden sm:inline">DASHBOARD</span>
           </Link>
 
-          <div className="h-5 w-[1px] bg-slate-200" />
+          <div className="h-4 w-[1px] bg-neutral-800" />
 
-          <div className="w-8 h-8 rounded-lg bg-[#ab1f09] flex items-center justify-center text-white shadow-sm font-mono font-bold text-sm">
+          <div className="w-7 h-7 rounded-lg bg-[#ab1f09] flex items-center justify-center text-[#fff7d3] font-mono font-bold text-xs shadow-md shadow-[#ab1f09]/20">
             R
           </div>
 
@@ -187,119 +171,80 @@ function FormBuilderContent() {
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="text-base sm:text-lg font-medium text-slate-800 bg-transparent hover:border-b hover:border-slate-300 focus:border-b-2 focus:border-purple-600 focus:outline-none px-1 py-0.5 transition-all max-w-[200px] sm:max-w-xs truncate"
+            className="text-sm sm:text-base font-semibold text-white bg-transparent border-b border-transparent focus:border-[#ab1f09] focus:outline-none px-1 py-0.5 transition-all max-w-[180px] sm:max-w-xs truncate"
+            placeholder="Untitled Form"
           />
 
           {/* Auto-Save Indicator */}
-          <span className="text-[11px] font-mono text-slate-400 hidden sm:inline-flex items-center gap-1">
-            {savedNotice ? (
-              <>
-                <FiCheckCircle className="text-emerald-500 w-3 h-3" /> Saved Draft
-              </>
-            ) : (
-              "All changes saved"
-            )}
+          <span className="text-[10px] font-mono text-neutral-500 hidden md:inline-flex items-center gap-1.5">
+            <span className={`w-1.5 h-1.5 rounded-full ${savedNotice ? "bg-emerald-500 animate-pulse" : "bg-neutral-600"}`} />
+            <span>{savedNotice ? "Draft Saved" : "All changes saved"}</span>
           </span>
         </div>
 
-        {/* Center Tabs */}
-        <div className="hidden md:flex items-center gap-8 font-medium text-sm text-slate-600">
-          <button
-            onClick={() => setActiveTab("questions")}
-            className={`pb-1 relative transition-colors ${
-              activeTab === "questions" ? "text-purple-600 font-semibold" : "hover:text-slate-900"
-            }`}
-          >
-            Questions
-            {activeTab === "questions" && (
-              <span className="absolute bottom-[-11px] left-0 right-0 h-0.5 bg-purple-600 rounded-t-full" />
-            )}
-          </button>
-          <button
-            onClick={() => setActiveTab("responses")}
-            className={`pb-1 relative transition-colors ${
-              activeTab === "responses" ? "text-purple-600 font-semibold" : "hover:text-slate-900"
-            }`}
-          >
-            Responses
-            {activeTab === "responses" && (
-              <span className="absolute bottom-[-11px] left-0 right-0 h-0.5 bg-purple-600 rounded-t-full" />
-            )}
-          </button>
-          <button
-            onClick={() => setActiveTab("settings")}
-            className={`pb-1 relative transition-colors ${
-              activeTab === "settings" ? "text-purple-600 font-semibold" : "hover:text-slate-900"
-            }`}
-          >
-            Settings
-            {activeTab === "settings" && (
-              <span className="absolute bottom-[-11px] left-0 right-0 h-0.5 bg-purple-600 rounded-t-full" />
-            )}
-          </button>
-        </div>
-
-        {/* Right Side Publish & Actions */}
-        <div className="flex items-center gap-2 sm:gap-3 text-slate-600">
+        {/* Right: Status Badge & Publish Button */}
+        <div className="flex items-center gap-3">
           <span
-            className={`px-2.5 py-1 rounded-full text-[10px] font-mono uppercase font-bold tracking-wider ${
+            className={`text-[9px] font-mono px-2.5 py-1 rounded-full uppercase font-bold tracking-wider ${
               status === "published"
-                ? "bg-emerald-100 text-emerald-700"
-                : "bg-amber-100 text-amber-700"
+                ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
+                : "bg-amber-500/15 text-amber-400 border border-amber-500/30"
             }`}
           >
-            {status}
+            {status === "published" ? "● LIVE" : "⏳ DRAFT"}
           </span>
 
           <button
             onClick={handlePublish}
-            className="px-4 sm:px-5 py-2 bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white font-medium text-xs sm:text-sm rounded-lg shadow-sm shadow-purple-500/30 transition-all cursor-pointer"
+            className="px-4 py-2 bg-[#ab1f09] hover:bg-[#c2240b] text-[#fff7d3] font-mono font-medium text-xs uppercase tracking-wider rounded-lg transition-all shadow-lg shadow-[#ab1f09]/20 active:scale-[0.98] cursor-pointer"
           >
-            {status === "published" ? "Save Changes" : "Publish"}
+            {status === "published" ? "Save Changes" : "Publish Rack"}
           </button>
         </div>
       </header>
 
-      {/* Main Workspace */}
-      <main className="max-w-3xl mx-auto mt-6 px-4 flex gap-4 items-start relative">
+      {/* Main Form Builder Area */}
+      <main className="max-w-3xl w-full mx-auto p-4 sm:p-8 flex gap-5 items-start relative flex-1">
         
-        {/* Form Container */}
-        <div className="flex-1 space-y-4">
+        {/* Background Ambient Lighting */}
+        <div className="absolute top-10 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-[#ab1f09]/5 blur-[140px] pointer-events-none rounded-full" />
+
+        {/* Forms Stack */}
+        <div className="flex-1 space-y-6 relative z-10">
           
           {/* Form Header Card */}
-          <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm relative">
-            <div className="h-2.5 bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-500" />
-            <div className="p-6">
-              <input
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                className="w-full text-2xl sm:text-3xl font-semibold text-slate-900 border-b border-transparent focus:border-purple-600 outline-none pb-1 transition-all"
-                placeholder="Form Title"
-              />
-              <input
-                type="text"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="w-full mt-3 text-sm text-slate-500 border-b border-transparent focus:border-purple-600 outline-none pb-1 transition-all"
-                placeholder="Form description"
-              />
-            </div>
+          <div className="p-6 sm:p-8 border border-neutral-800/80 rounded-2xl bg-[#0d0d0d]/80 backdrop-blur-xl shadow-2xl relative overflow-hidden space-y-3">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#ab1f09] via-[#fff7d3]/50 to-[#ab1f09]" />
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="w-full text-2xl sm:text-3xl font-semibold tracking-tight text-white bg-transparent border-b border-transparent focus:border-[#ab1f09] outline-none pb-1 transition-all"
+              placeholder="Rack Form Title"
+            />
+            <input
+              type="text"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="w-full text-xs sm:text-sm text-neutral-400 font-light bg-transparent border-b border-transparent focus:border-[#ab1f09] outline-none pb-1 transition-all"
+              placeholder="Describe what this form collects..."
+            />
           </div>
 
           {/* Dynamic Questions List */}
           {questions.map((q, qIndex) => (
             <div
               key={q.id}
-              className="bg-white rounded-xl border border-slate-200 shadow-sm relative overflow-hidden flex"
+              className="border border-neutral-800/80 rounded-2xl bg-[#0d0d0d]/80 backdrop-blur-xl shadow-xl relative overflow-hidden transition-all hover:border-neutral-700"
             >
-              {/* Active Left Indicator Bar */}
-              <div className="w-1.5 bg-purple-600 self-stretch" />
+              {/* Left Active Line */}
+              <div className="absolute top-0 left-0 bottom-0 w-1 bg-[#ab1f09]" />
 
-              <div className="flex-1 p-6">
+              <div className="p-6 sm:p-8 space-y-6">
+                
                 {/* Question Header & Type Selector */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center">
-                  <div className="sm:col-span-2 flex items-center gap-2 bg-slate-50 border-b-2 border-purple-600 p-3 rounded-t-md">
+                  <div className="sm:col-span-2">
                     <input
                       type="text"
                       value={q.title}
@@ -308,12 +253,12 @@ function FormBuilderContent() {
                         updated[qIndex].title = e.target.value;
                         setQuestions(updated);
                       }}
-                      className="w-full bg-transparent text-slate-800 font-medium outline-none text-sm"
-                      placeholder="Question title"
+                      className="w-full text-sm sm:text-base font-medium text-white bg-[#111111] border border-neutral-800 rounded-xl px-4 py-3 focus:outline-none focus:border-[#ab1f09] transition-all"
+                      placeholder="Type your question..."
                     />
                   </div>
 
-                  {/* Type Selector Dropdown */}
+                  {/* Type Dropdown */}
                   <select
                     value={q.type}
                     onChange={(e) => {
@@ -321,7 +266,7 @@ function FormBuilderContent() {
                       updated[qIndex].type = e.target.value as any;
                       setQuestions(updated);
                     }}
-                    className="border border-slate-200 rounded-lg p-3 bg-white text-sm font-medium text-slate-700 outline-none focus:border-purple-600 cursor-pointer"
+                    className="w-full bg-[#111111] border border-neutral-800 rounded-xl px-3 py-3 text-xs font-mono text-neutral-300 focus:outline-none focus:border-[#ab1f09] cursor-pointer"
                   >
                     <option value="multiple_choice">● Multiple choice</option>
                     <option value="checkboxes">■ Checkboxes</option>
@@ -329,31 +274,31 @@ function FormBuilderContent() {
                   </select>
                 </div>
 
-                {/* Options Section */}
-                <div className="mt-6 space-y-3">
+                {/* Options List */}
+                <div className="space-y-3 pt-2">
                   {q.type === "short_text" ? (
-                    <div className="text-xs text-slate-400 italic border-b border-dashed border-slate-300 py-2">
-                      User will type short answer here...
+                    <div className="text-xs font-mono text-neutral-500 italic border-b border-dashed border-neutral-800 py-3">
+                      User will type their answer here...
                     </div>
                   ) : (
                     <>
                       {q.options.map((opt, optIndex) => (
                         <div key={optIndex} className="flex items-center gap-3">
                           {q.type === "multiple_choice" ? (
-                            <div className="w-4 h-4 rounded-full border-2 border-slate-300 flex-shrink-0" />
+                            <div className="w-4 h-4 rounded-full border border-neutral-700 bg-neutral-900 flex-shrink-0" />
                           ) : (
-                            <div className="w-4 h-4 rounded border-2 border-slate-300 flex-shrink-0" />
+                            <div className="w-4 h-4 rounded border border-neutral-700 bg-neutral-900 flex-shrink-0" />
                           )}
                           <input
                             type="text"
                             value={opt}
                             onChange={(e) => handleOptionChange(qIndex, optIndex, e.target.value)}
-                            className="text-sm text-slate-700 bg-transparent border-b border-transparent focus:border-purple-600 outline-none py-1 flex-1"
+                            className="text-xs sm:text-sm text-neutral-200 bg-transparent border-b border-neutral-800 focus:border-[#ab1f09] outline-none py-1 flex-1 transition-colors"
                           />
                           {q.options.length > 1 && (
                             <button
                               onClick={() => handleDeleteOption(qIndex, optIndex)}
-                              className="text-slate-400 hover:text-red-500 text-xs px-1 cursor-pointer"
+                              className="text-neutral-600 hover:text-red-400 text-xs px-1 cursor-pointer transition-colors"
                             >
                               ✕
                             </button>
@@ -361,40 +306,38 @@ function FormBuilderContent() {
                         </div>
                       ))}
 
-                      <div className="flex items-center gap-3 pt-2 text-sm">
-                        <button
-                          onClick={() => handleAddOption(qIndex)}
-                          className="text-purple-600 font-medium hover:underline text-xs cursor-pointer"
-                        >
-                          + Add option
-                        </button>
-                      </div>
+                      <button
+                        onClick={() => handleAddOption(qIndex)}
+                        className="text-xs font-mono text-[#fff7d3] hover:text-[#ab1f09] transition-colors pt-2 block cursor-pointer"
+                      >
+                        + Add option
+                      </button>
                     </>
                   )}
                 </div>
 
-                {/* Question Footer Actions */}
-                <div className="mt-8 pt-4 border-t border-slate-100 flex items-center justify-end gap-3 text-slate-500">
+                {/* Question Actions Footer */}
+                <div className="pt-4 border-t border-neutral-800/60 flex items-center justify-end gap-3 text-neutral-500">
                   <button
                     onClick={() => handleDuplicate(qIndex)}
-                    className="p-2 hover:bg-slate-100 rounded-full transition-colors cursor-pointer"
+                    className="p-2 hover:bg-neutral-900 rounded-lg hover:text-white transition-colors cursor-pointer text-xs font-mono"
                     title="Duplicate"
                   >
-                    <FiCopy className="w-4 h-4" />
+                    DUPLICATE
                   </button>
 
                   <button
                     onClick={() => handleDeleteQuestion(q.id)}
-                    className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-400 hover:text-red-500 cursor-pointer"
+                    className="p-2 hover:bg-neutral-900 rounded-lg hover:text-red-400 transition-colors cursor-pointer text-xs font-mono"
                     title="Delete"
                   >
-                    <FiTrash2 className="w-4 h-4" />
+                    DELETE
                   </button>
 
-                  <div className="h-5 w-[1px] bg-slate-200 mx-1" />
+                  <div className="h-4 w-[1px] bg-neutral-800 mx-1" />
 
-                  {/* Required Toggle */}
-                  <div className="flex items-center gap-2 text-xs font-medium text-slate-600">
+                  {/* Required Switch */}
+                  <div className="flex items-center gap-2 text-xs font-mono text-neutral-400">
                     <span>Required</span>
                     <button
                       onClick={() => {
@@ -403,32 +346,35 @@ function FormBuilderContent() {
                         setQuestions(updated);
                       }}
                       className={`w-9 h-5 flex items-center rounded-full p-0.5 transition-colors cursor-pointer ${
-                        q.required ? "bg-purple-600" : "bg-slate-300"
+                        q.required ? "bg-[#ab1f09]" : "bg-neutral-800"
                       }`}
                     >
                       <div
-                        className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${
+                        className={`bg-white w-4 h-4 rounded-full shadow transform transition-transform ${
                           q.required ? "translate-x-4" : "translate-x-0"
                         }`}
                       />
                     </button>
                   </div>
                 </div>
+
               </div>
             </div>
           ))}
+
         </div>
 
-        {/* Floating Side Action Bar */}
-        <aside className="sticky top-20 flex flex-col gap-2 bg-white border border-slate-200 p-2 rounded-xl shadow-md text-slate-500">
+        {/* Floating Side Action Button */}
+        <aside className="sticky top-24 flex flex-col gap-2 bg-[#0d0d0d] border border-neutral-800/80 p-2 rounded-2xl shadow-xl">
           <button
             onClick={handleAddQuestion}
-            className="p-2.5 hover:bg-purple-50 hover:text-purple-600 rounded-lg transition-colors cursor-pointer"
+            className="w-10 h-10 rounded-xl bg-[#ab1f09] hover:bg-[#c2240b] text-[#fff7d3] flex items-center justify-center font-bold text-lg shadow-md shadow-[#ab1f09]/20 transition-transform active:scale-95 cursor-pointer"
             title="Add Question"
           >
-            <FiPlusCircle className="w-5 h-5" />
+            +
           </button>
         </aside>
+
       </main>
 
     </div>
@@ -437,7 +383,7 @@ function FormBuilderContent() {
 
 export default function FormPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#F0F2F5]" />}>
+    <Suspense fallback={<div className="min-h-screen bg-[#050505]" />}>
       <FormBuilderContent />
     </Suspense>
   );
