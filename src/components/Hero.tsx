@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import ChromaticBackground from "./ChromaticBackground";
 export function Hero() {
+  const [menuOpen, setMenuOpen] = useState(false);
+
   return (
     <section className="relative min-h-screen overflow-hidden bg-black text-white font-sans flex flex-col justify-between">
       {/* Background */}
@@ -14,7 +16,7 @@ export function Hero() {
       <div className="absolute inset-0 z-0 bg-black/65 backdrop-blur-[1px]" />
 
       {/* Navbar */}
-      <nav className="relative z-20 w-full max-w-7xl mx-auto px-4 sm:px-8 pt-4 pb-2 flex items-center justify-between">
+            <nav className="relative z-20 w-full max-w-7xl mx-auto px-4 sm:px-8 pt-4 pb-2 flex items-center justify-between">
         <div className="flex items-center shrink-0">
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -31,28 +33,19 @@ export function Hero() {
         strokeWidth="12"
         strokeLinejoin="round"
       />
-
-      {/* Clothes Hanger Icon */}
       <g fill="none" stroke="#FFF7D3" strokeLinecap="round" strokeLinejoin="round">
-        {/* Hook */}
         <path
           d="M 400 338 C 388 338, 388 304, 402 304 C 413 304, 412 316, 401 323 C 395 327, 395 338, 395 338"
           strokeWidth="10"
         />
-
-        {/* Main Frame */}
         <path
           d="M 395 338 L 378 360 L 300 400 Q 400 375, 500 400 L 422 360 Z"
           strokeWidth="12"
         />
-
-        {/* Hanger Details / Accent Lines */}
         <path d="M 320 393 Q 400 370 480 393" strokeWidth="8" />
         <path d="M 350 380 L 378 365" strokeWidth="6" />
         <path d="M 450 380 L 422 365" strokeWidth="6" />
       </g>
-
-      {/* Lowercase "a" */}
       <path
         d="M 355 520 C 335 520, 325 538, 325 558 C 325 582, 342 598, 362 598 C 375 598, 385 588, 387 575 L 387 598 L 402 598 L 402 525 C 385 520, 370 520, 355 520 Z M 387 540 L 387 560 C 380 578, 342 578, 342 558 C 342 538, 375 538, 387 540 Z"
         fill="#FFF7D3"
@@ -60,8 +53,6 @@ export function Hero() {
         strokeWidth="12"
         strokeLinejoin="round"
       />
-
-      {/* Lowercase "c" */}
       <path
         d="M 465 528 C 455 520, 440 520, 430 528 C 412 542, 412 576, 430 590 C 442 600, 460 598, 468 588 L 456 578 C 450 584, 438 585, 432 576 C 424 564, 424 552, 432 542 C 438 534, 452 534, 458 540 Z"
         fill="#FFF7D3"
@@ -69,8 +60,6 @@ export function Hero() {
         strokeWidth="12"
         strokeLinejoin="round"
       />
-
-      {/* Letter K */}
       <path
         d="M 508 273 L 547 273 L 547 400 L 622 273 L 670 273 L 582 410 L 677 598 L 625 598 L 547 435 L 547 598 L 508 598 Z"
         fill="#FFF7D3"
@@ -81,16 +70,58 @@ export function Hero() {
     </g>
   </svg>
 </div>
+
+        {/* Desktop Nav Links */}
         <div className="hidden md:flex items-center gap-8 text-xs sm:text-sm text-white/70">
           <a href="#" className="hover:text-white transition">Templates</a>
           <a href="#" className="hover:text-white transition">Features</a>
           <a href="#" className="hover:text-white transition">Resources</a>
         </div>
 
+        {/* Mobile Hamburger - centered */}
+        <button
+          onClick={() => setMenuOpen(!menuOpen)}
+          aria-label="Toggle menu"
+          className="md:hidden absolute left-1/2 -translate-x-1/2 flex flex-col items-center justify-center gap-1.5 w-9 h-9 rounded-full border border-[#ab1f09]/50 bg-[#ab1f09]/20 hover:bg-[#ab1f09]/40 transition"
+        >
+          <span className={`block h-0.5 w-4 bg-[#fff7d3] transition-transform duration-300 ${menuOpen ? "rotate-45 translate-y-[6px]" : ""}`} />
+          <span className={`block h-0.5 w-4 bg-[#fff7d3] transition-opacity duration-300 ${menuOpen ? "opacity-0" : "opacity-100"}`} />
+          <span className={`block h-0.5 w-4 bg-[#fff7d3] transition-transform duration-300 ${menuOpen ? "-rotate-45 -translate-y-[6px]" : ""}`} />
+        </button>
+
         <button className="rounded-full border border-[#ab1f09]/50 bg-[#ab1f09]/20 px-4 sm:px-5 py-1.5 text-xs sm:text-sm font-medium text-[#fff7d3] hover:bg-[#ab1f09]/40 transition">
          Build a form
         </button>
       </nav>
+
+      {/* Mobile Dropdown - Grid Layout */}
+      {menuOpen && (
+        <div className="md:hidden relative z-20 w-full max-w-7xl mx-auto px-4 sm:px-8 pb-4">
+          <div className="grid grid-cols-2 gap-3 rounded-2xl border border-[#ab1f09]/30 bg-black/95 backdrop-blur-md p-4">
+            <a
+              href="#"
+              onClick={() => setMenuOpen(false)}
+              className="rounded-xl border border-[#ab1f09]/30 bg-[#ab1f09]/10 px-4 py-4 text-center text-sm text-[#fff7d3] hover:bg-[#ab1f09]/30 transition"
+            >
+              Templates
+            </a>
+            <a
+              href="#"
+              onClick={() => setMenuOpen(false)}
+              className="rounded-xl border border-[#ab1f09]/30 bg-[#ab1f09]/10 px-4 py-4 text-center text-sm text-[#fff7d3] hover:bg-[#ab1f09]/30 transition"
+            >
+              Features
+            </a>
+            <a
+              href="#"
+              onClick={() => setMenuOpen(false)}
+              className="col-span-2 rounded-xl border border-[#ab1f09]/30 bg-[#ab1f09]/10 px-4 py-4 text-center text-sm text-[#fff7d3] hover:bg-[#ab1f09]/30 transition"
+            >
+              Resources
+            </a>
+          </div>
+        </div>
+      )}
 
       {/* Hero Content */}
       <div className="relative z-10 w-full max-w-5xl mx-auto px-4 sm:px-6 pt-2 pb-4 text-center flex flex-col items-center flex-1 justify-start">
