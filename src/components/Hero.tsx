@@ -113,7 +113,7 @@ export function Hero() {
         {/* Action Buttons */}
         <div className="mt-5 flex items-center justify-center gap-3 sm:gap-4 w-full sm:w-auto">
           <button className="w-full sm:w-auto rounded-full bg-[#fff7d3] px-6 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold text-[#ab1f09] hover:bg-white transition shadow-lg shadow-[#fff7d3]/10">
-            Start stacking responses
+            Build a form
           </button>
 
         </div>
@@ -190,14 +190,14 @@ export function Hero() {
 
 export function ClaritySection() {
   const categories = [
-    "Product Strategy",
-    "Information Technology",
-    "eCommerce",
-    "Artificial Intelligence",
-    "Model Production",
-    "Process Optimization",
-    "Business Automation",
-    "Growth Strategy",
+    "Create Forms",
+    "Collect Insights",
+    "Run Surveys",
+    "Gather Feedback",
+    "Make Decisions",
+    "Automate Workflows",
+    "Analyze Data",
+    "Collaborate",
   ];
 
   return (
@@ -219,7 +219,7 @@ export function ClaritySection() {
 
           <div className="pt-2">
             <button className="w-full sm:w-auto rounded-full bg-[#ab1f09] px-8 py-3 text-xs sm:text-sm font-semibold text-[#fff7d3] hover:bg-[#ab1f09]/80 transition shadow-lg shadow-[#ab1f09]/30">
-              Take Control
+              Build a form
             </button>
           </div>
         </div>
@@ -251,10 +251,10 @@ export function ClaritySection() {
             {/* Inner Display Card */}
             <div className="rounded-xl border border-neutral-800 bg-neutral-950/80 p-4 sm:p-5 space-y-8 min-h-[140px] flex flex-col justify-between">
               <span className="inline-block px-3 py-1 rounded-full border border-[#ab1f09]/40 bg-[#ab1f09]/15 text-[10px] sm:text-[11px] text-[#fff7d3] w-max">
-                Artificial Intelligence
+                Form Builder
               </span>
               <p className="text-xs text-neutral-400 text-right">
-                AI that saves time, cuts costs, and drives growth
+                Build forms that feel simple for creators and seamless for everyone who responds
               </p>
             </div>
           </div>
@@ -268,15 +268,15 @@ export function ClaritySection() {
                 <div className="flex items-center gap-2">
                   <div className="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-b-[10px] border-b-[#ab1f09]" />
                   <span className="text-xs font-bold tracking-wider text-white uppercase">
-                    Conversion
+                    Collaboration
                   </span>
                 </div>
                 <p className="text-xs text-neutral-400 leading-relaxed">
-                  Turn visitors into customers.
+                  Build and manage forms together with your team.
                 </p>
               </div>
               <a href="#" className="text-xs text-[#fff7d3]/80 underline underline-offset-4 hover:text-[#fff7d3] transition text-right block">
-                Learn more
+                See how it works
               </a>
             </div>
 
@@ -286,15 +286,15 @@ export function ClaritySection() {
                 <div className="flex items-center gap-2">
                   <div className="h-2.5 w-2.5 rounded bg-[#ab1f09]" />
                   <span className="text-xs font-bold tracking-wider text-white uppercase">
-                    Analytics
+                    Insights
                   </span>
                 </div>
                 <p className="text-xs text-neutral-400 leading-relaxed">
-                  Clear data, smart moves.
+                  Understand responses and make better decisions.
                 </p>
               </div>
               <a href="#" className="text-xs text-[#fff7d3]/80 underline underline-offset-4 hover:text-[#fff7d3] transition text-right block">
-                Learn more
+                View insights
               </a>
             </div>
 
