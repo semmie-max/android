@@ -479,9 +479,105 @@ export default function LandingPage() {
       <ClaritySection />
       <StepProcessSection />
       <CapabilitiesSection />
+      <FAQSection />
       <CTASection />
       <Footer />
     </main>
+  );
+}
+
+export function FAQSection() {
+  const [openIndex, setOpenIndex] = useState<number | null>(0);
+
+  const faqs = [
+    {
+      question: "How does the platform integrate with our existing tools?",
+      answer:
+        "Our platform connects seamlessly via standard APIs and webhooks. You can link your existing workflows, data sources, and services in just a few clicks.",
+    },
+    {
+      question: "Is my data secure and private?",
+      answer:
+        "Yes, security is built into every layer. We utilize end-to-end encryption for data in transit and at rest, maintaining strict access controls throughout your environment.",
+    },
+    {
+      question: "Can I customize the automated workflows?",
+      answer:
+        "Absolutely. You have full control over the parameters, triggers, and execution steps to match your team's specific requirements.",
+    },
+    {
+      question: "What kind of support do you offer?",
+      answer:
+        "We offer round-the-clock technical support, dedicated account management for teams, and comprehensive documentation to ensure continuous uptime.",
+    },
+  ];
+
+  const toggleFAQ = (index: number) => {
+    setOpenIndex(openIndex === index ? null : index);
+  };
+
+  return (
+    <section className="w-full bg-black text-white py-16 px-4 sm:px-8 border-b border-neutral-800">
+      <div className="max-w-6xl mx-auto border border-neutral-800 rounded-xl overflow-hidden bg-[#0a0a0a] p-8 sm:p-14">
+        
+        {/* Header Block */}
+        <div className="space-y-4 mb-12">
+          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-black/60 border border-neutral-800">
+            <span className="w-2 h-2 rounded-full bg-[#ab1f09]" />
+            <span className="text-xs font-mono tracking-widest text-[#fff7d3] uppercase">
+              FREQUENTLY ASKED QUESTIONS
+            </span>
+          </div>
+          <h2 className="text-3xl sm:text-5xl font-semibold tracking-tight text-white">
+            Everything you need to know
+          </h2>
+        </div>
+
+        {/* Accordion List */}
+        <div className="divide-y divide-neutral-800 border-t border-b border-neutral-800">
+          {faqs.map((faq, index) => {
+            const isOpen = openIndex === index;
+            return (
+              <div key={index} className="py-6 transition-colors">
+                <button
+                  onClick={() => toggleFAQ(index)}
+                  className="w-full flex items-center justify-between text-left focus:outline-none group"
+                >
+                  <span
+                    className={`text-lg sm:text-xl font-medium transition-colors ${
+                      isOpen ? "text-[#fff7d3]" : "text-neutral-200 group-hover:text-white"
+                    }`}
+                  >
+                    {faq.question}
+                  </span>
+                  
+                  {/* Plus/Minus Indicator */}
+                  <div
+                    className={`w-8 h-8 rounded-lg flex items-center justify-center border transition-all ${
+                      isOpen
+                        ? "border-[#ab1f09] bg-[#ab1f09]/10 text-[#fff7d3]"
+                        : "border-neutral-800 bg-neutral-900 text-neutral-400 group-hover:border-neutral-700"
+                    }`}
+                  >
+                    <span className="text-xl font-mono leading-none">
+                      {isOpen ? "−" : "+"}
+                    </span>
+                  </div>
+                </button>
+
+                {/* Animated Dropdown Content */}
+                {isOpen && (
+                  <div className="mt-4 pr-12 text-sm sm:text-base text-neutral-400 leading-relaxed font-normal">
+                    {faq.answer}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+      </div>
+    </section>
   );
 }
 
@@ -510,7 +606,7 @@ export function CTASection() {
             {/* Top Pill Badge */}
             <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-black/60 border border-neutral-700/60 backdrop-blur-md">
               <span className="w-4 h-4 rounded bg-[#ab1f09] flex items-center justify-center text-[10px] text-[#fff7d3]">
-                ⚡
+                .
               </span>
               <span className="text-xs font-mono tracking-widest text-[#fff7d3] uppercase">
                 CTA
@@ -519,20 +615,19 @@ export function CTASection() {
 
             {/* Main Headline */}
             <h2 className="text-3xl sm:text-5xl font-semibold tracking-tight text-white leading-tight">
-              Build faster. <br />
-              Work smarter.
+              Create forms <br /> without limits
             </h2>
 
             {/* Description */}
             <p className="text-sm sm:text-base text-neutral-300 leading-relaxed max-w-md">
-              Designed to help teams automate processes and focus on what truly matters.
+              Build powerful forms, collect responses, and manage your data with a platform designed for flexibility and simplicity.
             </p>
           </div>
 
           {/* Right Action Button */}
           <div className="pt-4 md:pt-0">
             <button className="w-full sm:w-auto px-8 py-3.5 bg-white text-black font-semibold tracking-wider text-sm hover:bg-[#fff7d3] transition-colors rounded-none uppercase">
-              GET STARTED
+              Build a form
             </button>
           </div>
 
