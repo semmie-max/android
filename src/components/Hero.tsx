@@ -609,7 +609,7 @@ export function CTASection() {
                 .
               </span>
               <span className="text-xs font-mono tracking-widest text-[#fff7d3] uppercase">
-                CTA
+                Join Rack
               </span>
             </div>
 
