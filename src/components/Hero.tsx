@@ -558,13 +558,13 @@ export function ResponseInsightsSection() {
           <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-black/80 border border-neutral-800">
             <span className="w-2 h-2 rounded-full bg-[#ab1f09]" />
             <span className="text-xs font-mono tracking-widest text-[#fff7d3] uppercase">
-              SOCIAL PROOF
+              Response Analytics
             </span>
           </div>
 
           {/* Main Title */}
           <h2 className="text-3xl sm:text-5xl font-semibold tracking-tight text-white">
-            Powering modern teams with AI
+            See what your audience is saying
           </h2>
         </div>
 
@@ -574,11 +574,11 @@ export function ResponseInsightsSection() {
           {/* Card 1 */}
           <div className="p-8 sm:p-12 border-b md:border-r border-neutral-800 flex flex-col justify-between min-h-[220px]">
             <div className="text-5xl sm:text-7xl font-semibold tracking-tight text-white">
-              <span>{count1}</span>
-              <span className="text-[#ab1f09]">×</span>
+            
+              <span className="text-[#ab1f09]">∞</span>
             </div>
             <div className="pt-8 text-xs font-mono tracking-widest text-neutral-400 uppercase">
-              FASTER WORKFLOW EXECUTION
+              Form Possibilities
             </div>
           </div>
 
@@ -589,18 +589,18 @@ export function ResponseInsightsSection() {
               <span className="text-[#ab1f09]">%</span>
             </div>
             <div className="pt-8 text-xs font-mono tracking-widest text-neutral-400 uppercase">
-              REDUCTION IN MANUAL TASKS
+              Customizable Forms
             </div>
           </div>
 
           {/* Card 3 */}
           <div className="p-8 sm:p-12 border-b md:border-b-0 md:border-r border-neutral-800 flex flex-col justify-between min-h-[220px]">
             <div className="text-5xl sm:text-7xl font-semibold tracking-tight text-white">
-              <span>{count3}</span>
-              <span className="text-[#ab1f09]">×</span>
+              
+              <span className="text-[#ab1f09]">∞</span>
             </div>
             <div className="pt-8 text-xs font-mono tracking-widest text-neutral-400 uppercase">
-              SMARTER DECISION MAKING
+              Ways to Build
             </div>
           </div>
 
@@ -611,7 +611,7 @@ export function ResponseInsightsSection() {
               <span className="text-[#ab1f09]">%</span>
             </div>
             <div className="pt-8 text-xs font-mono tracking-widest text-neutral-400 uppercase">
-              INCREASE IN TEAM OUTPUT
+              Response Control
             </div>
           </div>
 
