@@ -314,6 +314,7 @@ export default function LandingPage() {
     <main className="bg-black min-h-screen">
       <Hero />
       <ClaritySection />
+      <CapabilitiesSection />
     </main>
   );
 }
