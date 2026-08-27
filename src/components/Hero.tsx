@@ -86,7 +86,7 @@ export function Hero() {
         </div>
 
         <button className="rounded-full border border-[#ab1f09]/50 bg-[#ab1f09]/20 px-4 sm:px-5 py-1.5 text-xs sm:text-sm font-medium text-[#fff7d3] hover:bg-[#ab1f09]/40 transition">
-          Get started
+         Build a form
         </button>
       </nav>
 
