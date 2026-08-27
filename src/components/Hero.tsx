@@ -116,16 +116,9 @@ export function Hero() {
             Start stacking responses
           </button>
 
-          <button className="w-full sm:w-auto rounded-full border border-[#ab1f09] bg-[#ab1f09]/20 px-6 py-2.5 sm:py-3 text-xs sm:text-sm font-medium text-white hover:bg-[#ab1f09]/40 transition backdrop-blur-sm">
-            View templates
-          </button>
         </div>
 
-        {/* Trust Note */}
-        <p className="mt-2 text-[10px] sm:text-xs text-white/40">
-          No credit card required · Free plan available
-        </p>
-
+        
         {/* Dashboard Preview Component */}
         <div className="mt-6 w-full max-w-3xl rounded-2xl border border-white/10 bg-[#0a0c0e]/90 p-4 sm:p-6 shadow-2xl backdrop-blur-md text-left">
           

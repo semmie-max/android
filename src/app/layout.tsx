@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   title: "Rack | Turn responses into action",
   description: "Build beautiful forms, collect responses, and run smarter votes.",
   icons: {
-    icon: "/favicon.ico",
+    icon: "/android/favicon.ico",
   },
 };
 
