@@ -91,7 +91,7 @@ export function Hero() {
           <span className={`block h-0.5 w-4 bg-[#fff7d3] transition-transform duration-300 ${menuOpen ? "-rotate-45 -translate-y-[6px]" : ""}`} />
         </button>
 
-        <Link href="/your-page">
+        <Link href="/signup">
   <button className="rounded-full border border-[#ab1f09]/50 bg-[#ab1f09]/20 px-4 sm:px-5 py-1.5 text-xs sm:text-sm font-medium text-[#fff7d3] hover:bg-[#ab1f09]/40 transition">
     Get started
   </button>
