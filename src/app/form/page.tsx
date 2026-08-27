@@ -30,16 +30,22 @@ export interface FormQuestion {
   type: QuestionType;
   required: boolean;
   options: string[];
-  // Paid Voting specific:
   pricePerVote?: number;
   currency?: string;
   candidates?: Candidate[];
+}
+
+export interface FormTheme {
+  accentColor: string;
+  fontFamily: "font-sans" | "font-mono" | "font-serif";
+  cardRadius: "rounded-xl" | "rounded-2xl" | "rounded-3xl";
 }
 
 export interface FormSettings {
   acceptingResponses: boolean;
   collectEmail: boolean;
   confirmationMessage: string;
+  theme: FormTheme;
 }
 
 export interface FormResponseItem {
@@ -64,6 +70,16 @@ export interface RackForm {
   responses: FormResponseItem[];
 }
 
+// Preset Theme Colors
+const COLOR_PRESETS = [
+  { name: "Crimson", hex: "#ab1f09" },
+  { name: "Emerald", hex: "#10b981" },
+  { name: "Indigo", hex: "#6366f1" },
+  { name: "Amber", hex: "#f59e0b" },
+  { name: "Cyan", hex: "#06b6d4" },
+  { name: "Pink", hex: "#ec4899" },
+];
+
 function FormApp() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -71,8 +87,9 @@ function FormApp() {
   const isLiveView = searchParams.get("view") === "live";
 
   // Navigation & Modals
-  const [activeTab, setActiveTab] = useState<"builder" | "preview" | "responses" | "settings">("builder");
+  const [activeTab, setActiveTab] = useState<"builder" | "responses" | "settings">("builder");
   const [showTypeSelector, setShowTypeSelector] = useState(false);
+  const [showThemeModal, setShowThemeModal] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [savedNotice, setSavedNotice] = useState(false);
 
@@ -87,6 +104,11 @@ function FormApp() {
     acceptingResponses: true,
     collectEmail: true,
     confirmationMessage: "Thank you! Your response has been securely recorded.",
+    theme: {
+      accentColor: "#ab1f09",
+      fontFamily: "font-sans",
+      cardRadius: "rounded-3xl",
+    },
   });
   const [questions, setQuestions] = useState<FormQuestion[]>([
     {
@@ -106,7 +128,7 @@ function FormApp() {
   const [liveSelectedCandidate, setLiveSelectedCandidate] = useState<string>("");
   const [liveSubmitted, setLiveSubmitted] = useState(false);
 
-  // 1. Initial Data Load
+  // 1. Initial Load
   useEffect(() => {
     const existingForms: RackForm[] = JSON.parse(localStorage.getItem("rack_forms") || "[]");
 
@@ -119,7 +141,11 @@ function FormApp() {
         setStatus(found.status);
         setCreatedAt(found.createdAt);
         setUpdatedAt(found.updatedAt);
-        setSettings(found.settings || settings);
+        setSettings({
+          ...settings,
+          ...found.settings,
+          theme: found.settings?.theme || settings.theme,
+        });
         setQuestions(found.questions || []);
         setResponses(found.responses || []);
         return;
@@ -166,12 +192,12 @@ function FormApp() {
     return () => clearTimeout(timer);
   }, [formId, title, description, status, settings, questions, responses, isLiveView]);
 
-  // Add Question
+  // --- ACTIONS ---
   const handleAddQuestion = (type: QuestionType) => {
     const isPaid = type === "paid_voting";
     const newQ: FormQuestion = {
       id: "q_" + Date.now(),
-      title: isPaid ? "Official Contestant Ballot" : "Untitled Question",
+      title: isPaid ? "Contestant Ballot" : "Untitled Question",
       type,
       required: false,
       options: type === "multiple_choice" || type === "checkboxes" || type === "dropdown" ? ["Option 1", "Option 2"] : [],
@@ -188,8 +214,12 @@ function FormApp() {
     setShowTypeSelector(false);
   };
 
-  const handleDeleteQuestion = (id: string) => {
-    if (questions.length === 1) return;
+  // Delete Full Block
+  const handleDeleteFullBlock = (id: string) => {
+    if (questions.length === 1) {
+      alert("A form must contain at least one question block.");
+      return;
+    }
     setQuestions(questions.filter((q) => q.id !== id));
   };
 
@@ -208,16 +238,16 @@ function FormApp() {
     setQuestions(updated);
   };
 
-  const handleOptionChange = (qIdx: number, optIdx: number, val: string) => {
+  const handleOptionChange = (qIdx: number, oIdx: number, val: string) => {
     const updated = [...questions];
-    updated[qIdx].options[optIdx] = val;
+    updated[qIdx].options[oIdx] = val;
     setQuestions(updated);
   };
 
-  const handleDeleteOption = (qIdx: number, optIdx: number) => {
+  const handleDeleteOption = (qIdx: number, oIdx: number) => {
     const updated = [...questions];
     if (updated[qIdx].options.length <= 1) return;
-    updated[qIdx].options.splice(optIdx, 1);
+    updated[qIdx].options.splice(oIdx, 1);
     setQuestions(updated);
   };
 
@@ -250,7 +280,7 @@ function FormApp() {
     }
   };
 
-  // Public Live Submission Execution
+  // Public Live Submission
   const handleLiveSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -259,8 +289,6 @@ function FormApp() {
     if (targetIndex === -1) return;
 
     const currentForm = existingForms[targetIndex];
-
-    // Check if voting question exists and increment contestant votes
     const votingQ = currentForm.questions.find((q) => q.type === "paid_voting");
     let totalPaid = 0;
     if (votingQ && liveSelectedCandidate) {
@@ -300,39 +328,51 @@ function FormApp() {
     }
   };
 
+  const currentTheme = settings.theme || {
+    accentColor: "#ab1f09",
+    fontFamily: "font-sans",
+    cardRadius: "rounded-3xl",
+  };
+
   // =========================================================================
-  // PUBLIC STANDALONE RESPONDENT VIEW (When viewing via live link)
+  // 1. PUBLIC LIVE RESPONDENT VIEW
   // =========================================================================
   if (isLiveView) {
     return (
-      <div className="min-h-screen w-full bg-[#050505] text-white flex flex-col justify-center items-center p-4 sm:p-8 font-sans selection:bg-[#ab1f09] selection:text-[#fff7d3]">
-        <div className="w-full max-w-2xl bg-[#0d0d0d] border border-neutral-800 rounded-3xl p-6 sm:p-10 shadow-2xl relative overflow-hidden space-y-8">
-          <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#ab1f09] via-[#fff7d3]/50 to-[#ab1f09]" />
+      <div className={`min-h-screen w-full bg-[#050505] text-white flex flex-col justify-center items-center p-4 sm:p-8 ${currentTheme.fontFamily}`}>
+        <div className={`w-full max-w-2xl bg-[#0d0d0d] border border-neutral-800 ${currentTheme.cardRadius} p-6 sm:p-10 shadow-2xl relative overflow-hidden space-y-8`}>
+          <div
+            className="absolute top-0 left-0 right-0 h-1.5"
+            style={{ backgroundColor: currentTheme.accentColor }}
+          />
 
           {liveSubmitted ? (
             <div className="text-center py-12 space-y-4">
-              <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center mx-auto">
+              <div
+                className="w-14 h-14 rounded-2xl border flex items-center justify-center mx-auto"
+                style={{
+                  backgroundColor: `${currentTheme.accentColor}20`,
+                  borderColor: currentTheme.accentColor,
+                  color: currentTheme.accentColor,
+                }}
+              >
                 <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                 </svg>
               </div>
               <h2 className="text-2xl font-bold text-white">Submission Confirmed</h2>
               <p className="text-sm text-neutral-400 max-w-md mx-auto">{settings.confirmationMessage}</p>
-              <div className="pt-4 text-xs font-mono text-neutral-600">Powered by RACK Infrastructure</div>
             </div>
           ) : (
             <form onSubmit={handleLiveSubmit} className="space-y-8">
               <div className="space-y-2 border-b border-neutral-800/80 pb-6">
-                <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-neutral-900 border border-neutral-800 text-[10px] font-mono text-[#fff7d3] uppercase">
-                  <span>LIVE FORM</span>
-                </div>
                 <h1 className="text-3xl font-bold text-white tracking-tight">{title}</h1>
                 <p className="text-sm text-neutral-400 font-light leading-relaxed">{description}</p>
 
                 {settings.collectEmail && (
                   <div className="pt-4">
                     <label className="block text-xs font-mono text-neutral-400 uppercase mb-1.5">
-                      Your Email Address <span className="text-[#ab1f09]">*</span>
+                      Your Email Address <span style={{ color: currentTheme.accentColor }}>*</span>
                     </label>
                     <input
                       type="email"
@@ -340,18 +380,18 @@ function FormApp() {
                       value={liveEmail}
                       onChange={(e) => setLiveEmail(e.target.value)}
                       placeholder="name@gmail.com"
-                      className="w-full px-4 py-3 bg-[#111111] border border-neutral-800 rounded-xl text-sm text-white focus:outline-none focus:border-[#ab1f09]"
+                      className="w-full px-4 py-3 bg-[#111111] border border-neutral-800 rounded-xl text-sm text-white focus:outline-none"
                     />
                   </div>
                 )}
               </div>
 
-              {/* Questions Stack */}
+              {/* Questions */}
               <div className="space-y-6">
                 {questions.map((q, idx) => (
-                  <div key={q.id} className="p-6 rounded-2xl bg-[#111111]/80 border border-neutral-800 space-y-4">
+                  <div key={q.id} className={`p-6 bg-[#111111]/80 border border-neutral-800 ${currentTheme.cardRadius} space-y-4`}>
                     <label className="block text-sm font-semibold text-white">
-                      {idx + 1}. {q.title} {q.required && <span className="text-[#ab1f09]">*</span>}
+                      {idx + 1}. {q.title} {q.required && <span style={{ color: currentTheme.accentColor }}>*</span>}
                     </label>
 
                     {q.type === "short_answer" && (
@@ -360,7 +400,7 @@ function FormApp() {
                         required={q.required}
                         value={liveAnswers[q.id] || ""}
                         onChange={(e) => setLiveAnswers({ ...liveAnswers, [q.id]: e.target.value })}
-                        className="w-full px-4 py-2.5 bg-black border border-neutral-800 rounded-xl text-sm text-white focus:border-[#ab1f09] outline-none"
+                        className="w-full px-4 py-2.5 bg-black border border-neutral-800 rounded-xl text-sm text-white outline-none"
                         placeholder="Your answer..."
                       />
                     )}
@@ -371,7 +411,7 @@ function FormApp() {
                         required={q.required}
                         value={liveAnswers[q.id] || ""}
                         onChange={(e) => setLiveAnswers({ ...liveAnswers, [q.id]: e.target.value })}
-                        className="w-full px-4 py-2.5 bg-black border border-neutral-800 rounded-xl text-sm text-white focus:border-[#ab1f09] outline-none resize-none"
+                        className="w-full px-4 py-2.5 bg-black border border-neutral-800 rounded-xl text-sm text-white outline-none resize-none"
                         placeholder="Write your response..."
                       />
                     )}
@@ -386,7 +426,8 @@ function FormApp() {
                               required={q.required}
                               checked={liveAnswers[q.id] === opt}
                               onChange={() => setLiveAnswers({ ...liveAnswers, [q.id]: opt })}
-                              className="accent-[#ab1f09] w-4 h-4"
+                              className="w-4 h-4"
+                              style={{ accentColor: currentTheme.accentColor }}
                             />
                             <span>{opt}</span>
                           </label>
@@ -406,7 +447,8 @@ function FormApp() {
                                 const updated = e.target.checked ? [...curr, opt] : curr.filter((x) => x !== opt);
                                 setLiveAnswers({ ...liveAnswers, [q.id]: updated });
                               }}
-                              className="accent-[#ab1f09] w-4 h-4"
+                              className="w-4 h-4"
+                              style={{ accentColor: currentTheme.accentColor }}
                             />
                             <span>{opt}</span>
                           </label>
@@ -421,11 +463,12 @@ function FormApp() {
                             type="button"
                             key={val}
                             onClick={() => setLiveAnswers({ ...liveAnswers, [q.id]: val })}
-                            className={`w-10 h-10 rounded-xl font-mono text-sm transition-all ${
-                              liveAnswers[q.id] === val
-                                ? "bg-[#ab1f09] text-[#fff7d3] font-bold shadow-md shadow-[#ab1f09]/30"
-                                : "bg-black border border-neutral-800 text-neutral-400"
-                            }`}
+                            className="w-10 h-10 rounded-xl font-mono text-sm transition-all border cursor-pointer"
+                            style={{
+                              backgroundColor: liveAnswers[q.id] === val ? currentTheme.accentColor : "#000",
+                              borderColor: liveAnswers[q.id] === val ? currentTheme.accentColor : "#262626",
+                              color: liveAnswers[q.id] === val ? "#fff" : "#a3a3a3",
+                            }}
                           >
                             {val}
                           </button>
@@ -436,32 +479,31 @@ function FormApp() {
                     {/* Paid Voting Contestant Selector */}
                     {q.type === "paid_voting" && (
                       <div className="space-y-4">
-                        <div className="text-xs font-mono text-[#fff7d3]">
-                          Rate: {q.currency} {q.pricePerVote} per vote
+                        <div className="text-xs font-mono text-neutral-400">
+                          Rate: <span style={{ color: currentTheme.accentColor }}>{q.currency} {q.pricePerVote}</span> per vote
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           {q.candidates?.map((cand) => (
                             <div
                               key={cand.id}
                               onClick={() => setLiveSelectedCandidate(cand.name)}
-                              className={`p-4 rounded-xl border transition-all cursor-pointer space-y-1 ${
-                                liveSelectedCandidate === cand.name
-                                  ? "bg-[#ab1f09]/20 border-[#ab1f09] shadow-lg shadow-[#ab1f09]/20"
-                                  : "bg-black border-neutral-800 hover:border-neutral-700"
-                              }`}
+                              className="p-4 rounded-2xl border transition-all cursor-pointer space-y-1"
+                              style={{
+                                backgroundColor: liveSelectedCandidate === cand.name ? `${currentTheme.accentColor}15` : "#000",
+                                borderColor: liveSelectedCandidate === cand.name ? currentTheme.accentColor : "#262626",
+                              }}
                             >
                               <div className="font-semibold text-sm text-white">{cand.name}</div>
                               <div className="text-xs text-neutral-500">{cand.category}</div>
                               <div className="text-[11px] font-mono text-neutral-400 pt-1">
-                                Current Tally: <span className="text-[#fff7d3]">{cand.votes}</span> votes
+                                Current Tally: {cand.votes} votes
                               </div>
                             </div>
                           ))}
                         </div>
 
-                        {/* Votes Quantity */}
                         <div className="flex items-center justify-between p-3 bg-black border border-neutral-800 rounded-xl">
-                          <span className="text-xs font-mono text-neutral-400">Number of Votes:</span>
+                          <span className="text-xs font-mono text-neutral-400">Votes:</span>
                           <div className="flex items-center gap-3">
                             <input
                               type="number"
@@ -470,7 +512,7 @@ function FormApp() {
                               onChange={(e) => setLiveVotesCount(Math.max(1, parseInt(e.target.value) || 1))}
                               className="w-16 px-2 py-1 bg-neutral-900 border border-neutral-700 rounded-lg text-white font-mono text-center text-xs"
                             />
-                            <span className="text-xs font-mono font-bold text-[#fff7d3]">
+                            <span className="text-xs font-mono font-bold" style={{ color: currentTheme.accentColor }}>
                               Total: {q.currency} {((q.pricePerVote || 1) * liveVotesCount).toFixed(2)}
                             </span>
                           </div>
@@ -483,7 +525,8 @@ function FormApp() {
 
               <button
                 type="submit"
-                className="w-full py-4 bg-[#ab1f09] hover:bg-[#c2240b] text-[#fff7d3] font-mono font-semibold text-xs uppercase tracking-wider rounded-xl transition-all shadow-xl shadow-[#ab1f09]/20 cursor-pointer"
+                className="w-full py-4 text-white font-mono font-semibold text-xs uppercase tracking-wider rounded-xl transition-all shadow-xl cursor-pointer"
+                style={{ backgroundColor: currentTheme.accentColor }}
               >
                 Submit Form
               </button>
@@ -495,12 +538,12 @@ function FormApp() {
   }
 
   // =========================================================================
-  // ADMIN FORM BUILDER INTERFACE
+  // 2. ADMIN FORM BUILDER INTERFACE
   // =========================================================================
   return (
-    <div className="min-h-screen w-full bg-[#050505] text-white flex flex-col font-sans selection:bg-[#ab1f09] selection:text-[#fff7d3]">
+    <div className={`min-h-screen w-full bg-[#050505] text-white flex flex-col ${currentTheme.fontFamily}`}>
       
-      {/* Top Header */}
+      {/* Top Header Bar */}
       <header className="w-full border-b border-neutral-800/80 bg-black/80 backdrop-blur-xl py-3 px-4 sm:px-8 flex items-center justify-between sticky top-0 z-50">
         
         {/* Left: Back & Title */}
@@ -519,7 +562,7 @@ function FormApp() {
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="text-base font-semibold text-white bg-transparent border-b border-transparent focus:border-[#ab1f09] outline-none px-1 max-w-[180px] sm:max-w-xs truncate"
+            className="text-base font-semibold text-white bg-transparent border-b border-transparent focus:border-neutral-500 outline-none px-1 max-w-[180px] sm:max-w-xs truncate"
             placeholder="Form Title"
           />
 
@@ -533,49 +576,71 @@ function FormApp() {
         <div className="flex items-center p-1 rounded-xl bg-neutral-900 border border-neutral-800 text-xs font-mono">
           <button
             onClick={() => setActiveTab("builder")}
-            className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
-              activeTab === "builder" ? "bg-[#ab1f09] text-[#fff7d3] font-medium" : "text-neutral-400 hover:text-white"
-            }`}
+            className="px-3 py-1.5 rounded-lg transition-all cursor-pointer"
+            style={{
+              backgroundColor: activeTab === "builder" ? currentTheme.accentColor : "transparent",
+              color: activeTab === "builder" ? "#fff" : "#a3a3a3",
+            }}
           >
             Builder
           </button>
           <button
             onClick={() => setActiveTab("responses")}
-            className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
-              activeTab === "responses" ? "bg-[#ab1f09] text-[#fff7d3] font-medium" : "text-neutral-400 hover:text-white"
-            }`}
+            className="px-3 py-1.5 rounded-lg transition-all cursor-pointer"
+            style={{
+              backgroundColor: activeTab === "responses" ? currentTheme.accentColor : "transparent",
+              color: activeTab === "responses" ? "#fff" : "#a3a3a3",
+            }}
           >
             Responses ({responses.length})
           </button>
           <button
             onClick={() => setActiveTab("settings")}
-            className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
-              activeTab === "settings" ? "bg-[#ab1f09] text-[#fff7d3] font-medium" : "text-neutral-400 hover:text-white"
-            }`}
+            className="px-3 py-1.5 rounded-lg transition-all cursor-pointer"
+            style={{
+              backgroundColor: activeTab === "settings" ? currentTheme.accentColor : "transparent",
+              color: activeTab === "settings" ? "#fff" : "#a3a3a3",
+            }}
           >
             Settings
           </button>
         </div>
 
-        {/* Right: Copy Link & Publish */}
+        {/* Right: Theme, Copy Link & Publish */}
         <div className="flex items-center gap-2.5">
+          
+          {/* Theme Palette Button */}
+          <button
+            onClick={() => setShowThemeModal(true)}
+            className="p-2 rounded-xl bg-neutral-900 border border-neutral-800 text-neutral-300 hover:text-white transition-all text-xs font-mono flex items-center gap-1.5 cursor-pointer"
+            title="Customize Form Theme"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 21a4 4 0 01-4-4 5 5 0 013-4.5V6a3 3 0 016 0v6.5A5 5 0 0115 17a4 4 0 01-4 4H7zM15 11l6-6m-3 0l3 3" />
+            </svg>
+            <span className="hidden sm:inline">THEME</span>
+          </button>
+
+          {/* Share Button */}
           <button
             onClick={handleCopyLink}
-            className="px-3 py-1.5 rounded-xl bg-neutral-900 border border-neutral-800 text-neutral-300 hover:text-[#fff7d3] text-xs font-mono flex items-center gap-1.5 cursor-pointer"
+            className="px-3 py-1.5 rounded-xl bg-neutral-900 border border-neutral-800 text-neutral-300 hover:text-white text-xs font-mono flex items-center gap-1.5 cursor-pointer"
           >
-            <svg className="w-3.5 h-3.5 text-[#ab1f09]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
             </svg>
             <span>{copiedLink ? "COPIED!" : "SHARE LINK"}</span>
           </button>
 
+          {/* Publish Toggle */}
           <button
             onClick={() => setStatus(status === "published" ? "closed" : "published")}
-            className={`px-3.5 py-1.5 text-xs font-mono font-medium uppercase rounded-xl transition-all cursor-pointer ${
-              status === "published"
-                ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40"
-                : "bg-[#ab1f09] hover:bg-[#c2240b] text-[#fff7d3]"
-            }`}
+            className="px-3.5 py-1.5 text-xs font-mono font-medium uppercase rounded-xl transition-all cursor-pointer"
+            style={{
+              backgroundColor: status === "published" ? "transparent" : currentTheme.accentColor,
+              color: status === "published" ? "#10b981" : "#fff",
+              border: status === "published" ? "1px solid #10b98150" : "none",
+            }}
           >
             {status === "published" ? "PUBLISHED" : "PUBLISH"}
           </button>
@@ -589,31 +654,35 @@ function FormApp() {
         {activeTab === "builder" && (
           <div className="space-y-6">
             
-            {/* Form Title & Description Card */}
-            <div className="p-6 sm:p-8 rounded-3xl bg-[#0d0d0d] border border-neutral-800 space-y-3 relative overflow-hidden shadow-2xl">
-              <div className="absolute top-0 left-0 right-0 h-1 bg-[#ab1f09]" />
+            {/* Header Card */}
+            <div className={`p-6 sm:p-8 ${currentTheme.cardRadius} bg-[#0d0d0d] border border-neutral-800 space-y-3 relative overflow-hidden shadow-2xl`}>
+              <div
+                className="absolute top-0 left-0 right-0 h-1.5"
+                style={{ backgroundColor: currentTheme.accentColor }}
+              />
               <input
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full text-2xl sm:text-3xl font-bold text-white bg-transparent border-b border-transparent focus:border-[#ab1f09] outline-none pb-1"
+                className="w-full text-2xl sm:text-3xl font-bold text-white bg-transparent border-b border-transparent focus:border-neutral-600 outline-none pb-1"
                 placeholder="Form Title"
               />
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={2}
-                className="w-full text-xs sm:text-sm text-neutral-400 font-light bg-transparent border-b border-transparent focus:border-[#ab1f09] outline-none resize-none"
+                className="w-full text-xs sm:text-sm text-neutral-400 font-light bg-transparent border-b border-transparent focus:border-neutral-600 outline-none resize-none"
                 placeholder="Form Description"
               />
             </div>
 
-            {/* Questions List */}
+            {/* Questions Blocks */}
             {questions.map((q, qIdx) => (
               <div
                 key={q.id}
-                className="p-6 sm:p-8 rounded-3xl bg-[#0d0d0d] border border-neutral-800 space-y-5 hover:border-neutral-700 transition-all relative"
+                className={`p-6 sm:p-8 ${currentTheme.cardRadius} bg-[#0d0d0d] border border-neutral-800 space-y-5 hover:border-neutral-700 transition-all relative group`}
               >
+                {/* Top Row with Delete Full Block Button */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="flex items-center gap-3 flex-1">
                     <span className="text-xs font-mono text-neutral-500">{qIdx + 1}.</span>
@@ -625,19 +694,32 @@ function FormApp() {
                         updated[qIdx].title = e.target.value;
                         setQuestions(updated);
                       }}
-                      className="w-full text-sm sm:text-base font-semibold text-white bg-[#111111] border border-neutral-800 rounded-xl px-4 py-2.5 focus:border-[#ab1f09] outline-none"
+                      className="w-full text-sm sm:text-base font-semibold text-white bg-[#111111] border border-neutral-800 rounded-xl px-4 py-2.5 focus:border-neutral-600 outline-none"
                       placeholder="Question Title..."
                     />
                   </div>
 
-                  <span className="text-[10px] font-mono px-3 py-1.5 rounded-lg bg-neutral-900 border border-neutral-800 text-[#fff7d3] uppercase self-start sm:self-auto">
-                    {q.type.replace("_", " ")}
-                  </span>
+                  <div className="flex items-center gap-2 self-end sm:self-auto">
+                    <span className="text-[10px] font-mono px-3 py-1.5 rounded-lg bg-neutral-900 border border-neutral-800 text-[#fff7d3] uppercase">
+                      {q.type.replace("_", " ")}
+                    </span>
+
+                    {/* Delete Full Block Button */}
+                    <button
+                      onClick={() => handleDeleteFullBlock(q.id)}
+                      className="p-2 rounded-lg bg-neutral-900 border border-neutral-800 text-neutral-500 hover:text-red-400 hover:border-red-500/40 transition-colors cursor-pointer"
+                      title="Delete Full Question Block"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
 
                 {/* Question Body */}
                 <div className="pt-2">
-                  {/* Standard Options */}
+                  {/* Options for Choices */}
                   {(q.type === "multiple_choice" || q.type === "checkboxes" || q.type === "dropdown") && (
                     <div className="space-y-2.5">
                       {q.options.map((opt, oIdx) => (
@@ -647,21 +729,22 @@ function FormApp() {
                             type="text"
                             value={opt}
                             onChange={(e) => handleOptionChange(qIdx, oIdx, e.target.value)}
-                            className="text-xs sm:text-sm text-neutral-200 bg-transparent border-b border-neutral-800 focus:border-[#ab1f09] outline-none py-1 flex-1"
+                            className="text-xs sm:text-sm text-neutral-200 bg-transparent border-b border-neutral-800 focus:border-neutral-500 outline-none py-1 flex-1"
                           />
                           {q.options.length > 1 && (
-  <button
-    onClick={() => handleDeleteOption(qIdx, oIdx)}
-    className="text-neutral-600 hover:text-red-400 text-xs px-2 cursor-pointer"
-  >
-    ✕
-  </button>
-)}
+                            <button
+                              onClick={() => handleDeleteOption(qIdx, oIdx)}
+                              className="text-neutral-600 hover:text-red-400 text-xs px-2 cursor-pointer"
+                            >
+                              ✕
+                            </button>
+                          )}
                         </div>
                       ))}
                       <button
                         onClick={() => handleAddOption(qIdx)}
-                        className="text-xs font-mono text-[#fff7d3] hover:text-[#ab1f09] pt-1 block cursor-pointer"
+                        className="text-xs font-mono pt-1 block cursor-pointer hover:underline"
+                        style={{ color: currentTheme.accentColor }}
                       >
                         + Add Choice
                       </button>
@@ -671,7 +754,7 @@ function FormApp() {
                   {/* Paid Voting Candidates Editor */}
                   {q.type === "paid_voting" && (
                     <div className="space-y-4">
-                      <div className="flex items-center gap-3 p-3 bg-neutral-900/90 border border-[#ab1f09]/30 rounded-xl text-xs font-mono">
+                      <div className="flex items-center gap-3 p-3 bg-neutral-900/90 border border-neutral-800 rounded-xl text-xs font-mono">
                         <span>Price Per Vote:</span>
                         <input
                           type="number"
@@ -683,7 +766,7 @@ function FormApp() {
                             updated[qIdx].pricePerVote = parseFloat(e.target.value) || 1.0;
                             setQuestions(updated);
                           }}
-                          className="w-20 px-2 py-1 bg-black border border-neutral-700 rounded-lg text-white font-mono text-xs focus:border-[#ab1f09] outline-none"
+                          className="w-20 px-2 py-1 bg-black border border-neutral-700 rounded-lg text-white font-mono text-xs outline-none"
                         />
                         <select
                           value={q.currency || "USD"}
@@ -709,20 +792,20 @@ function FormApp() {
                               type="text"
                               value={cand.name}
                               onChange={(e) => handleCandidateChange(qIdx, cIdx, "name", e.target.value)}
-                              className="text-xs sm:text-sm text-white bg-transparent border-b border-transparent focus:border-[#ab1f09] outline-none flex-1"
+                              className="text-xs sm:text-sm text-white bg-transparent border-b border-transparent focus:border-neutral-500 outline-none flex-1"
                               placeholder="Contestant Name"
                             />
                             <input
                               type="text"
                               value={cand.category || ""}
                               onChange={(e) => handleCandidateChange(qIdx, cIdx, "category", e.target.value)}
-                              className="text-xs text-neutral-400 bg-transparent border-b border-transparent focus:border-[#ab1f09] outline-none w-1/3"
+                              className="text-xs text-neutral-400 bg-transparent border-b border-transparent focus:border-neutral-500 outline-none w-1/3"
                               placeholder="Tagline / Category"
                             />
                             {q.candidates && q.candidates.length > 1 && (
                               <button
                                 onClick={() => handleDeleteCandidate(qIdx, cIdx)}
-                                className="text-neutral-500 hover:text-red-400 text-xs px-2"
+                                className="text-neutral-500 hover:text-red-400 text-xs px-2 cursor-pointer"
                               >
                                 ✕
                               </button>
@@ -731,7 +814,8 @@ function FormApp() {
                         ))}
                         <button
                           onClick={() => handleAddCandidate(qIdx)}
-                          className="text-xs font-mono text-[#fff7d3] hover:text-[#ab1f09] pt-1 block cursor-pointer"
+                          className="text-xs font-mono pt-1 block cursor-pointer hover:underline"
+                          style={{ color: currentTheme.accentColor }}
                         >
                           + Add Contestant
                         </button>
@@ -746,8 +830,8 @@ function FormApp() {
                     <button onClick={() => handleDuplicateQuestion(qIdx)} className="hover:text-white cursor-pointer">
                       Duplicate
                     </button>
-                    <button onClick={() => handleDeleteQuestion(q.id)} className="hover:text-red-400 cursor-pointer">
-                      Delete
+                    <button onClick={() => handleDeleteFullBlock(q.id)} className="hover:text-red-400 cursor-pointer">
+                      Delete Block
                     </button>
                   </div>
 
@@ -759,9 +843,10 @@ function FormApp() {
                         updated[qIdx].required = !updated[qIdx].required;
                         setQuestions(updated);
                       }}
-                      className={`w-8 h-4.5 flex items-center rounded-full p-0.5 transition-colors cursor-pointer ${
-                        q.required ? "bg-[#ab1f09]" : "bg-neutral-800"
-                      }`}
+                      className="w-8 h-4.5 flex items-center rounded-full p-0.5 transition-colors cursor-pointer"
+                      style={{
+                        backgroundColor: q.required ? currentTheme.accentColor : "#262626",
+                      }}
                     >
                       <div
                         className={`bg-white w-3.5 h-3.5 rounded-full shadow transform transition-transform ${
@@ -778,14 +863,14 @@ function FormApp() {
             <div className="relative">
               <button
                 onClick={() => setShowTypeSelector(!showTypeSelector)}
-                className="w-full py-4 rounded-2xl bg-[#0d0d0d] border border-dashed border-neutral-800 hover:border-[#ab1f09] text-xs font-mono text-[#fff7d3] transition-all flex items-center justify-center gap-2 cursor-pointer"
+                className={`w-full py-4 ${currentTheme.cardRadius} bg-[#0d0d0d] border border-dashed border-neutral-800 hover:border-neutral-600 text-xs font-mono text-white transition-all flex items-center justify-center gap-2 cursor-pointer`}
               >
                 <span className="text-base font-bold">+</span> ADD QUESTION OR ELEMENT
               </button>
 
-              {/* Element Type Picker Modal Dropdown */}
+              {/* Element Type Picker Modal */}
               {showTypeSelector && (
-                <div className="absolute top-full left-0 right-0 mt-3 p-4 bg-[#0d0d0d] border border-neutral-800 rounded-3xl shadow-2xl z-30 grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <div className={`absolute top-full left-0 right-0 mt-3 p-4 bg-[#0d0d0d] border border-neutral-800 ${currentTheme.cardRadius} shadow-2xl z-30 grid grid-cols-2 sm:grid-cols-3 gap-3`}>
                   {[
                     { id: "short_answer", label: "Short Text" },
                     { id: "paragraph", label: "Long Answer" },
@@ -802,7 +887,7 @@ function FormApp() {
                       onClick={() => handleAddQuestion(item.id as QuestionType)}
                       className={`p-3 rounded-xl border text-left text-xs font-mono transition-all cursor-pointer ${
                         item.id === "paid_voting"
-                          ? "bg-[#ab1f09]/15 border-[#ab1f09]/40 text-[#fff7d3] font-bold"
+                          ? "bg-neutral-900 border-[#ab1f09] text-white font-bold"
                           : "bg-[#111111] border-neutral-800 text-neutral-300 hover:text-white hover:border-neutral-700"
                       }`}
                     >
@@ -819,26 +904,26 @@ function FormApp() {
         {/* TAB 2: RESPONSES */}
         {activeTab === "responses" && (
           <div className="space-y-6">
-            <div className="p-6 rounded-3xl bg-[#0d0d0d] border border-neutral-800 flex items-center justify-between">
+            <div className={`p-6 ${currentTheme.cardRadius} bg-[#0d0d0d] border border-neutral-800 flex items-center justify-between`}>
               <div className="text-xs font-mono text-neutral-400 uppercase">
-                Submissions Collected: <span className="text-white font-bold">{responses.length}</span>
+                Submissions: <span className="text-white font-bold">{responses.length}</span>
               </div>
             </div>
 
             {responses.length === 0 ? (
-              <div className="p-12 text-center border border-dashed border-neutral-800 rounded-3xl bg-[#0d0d0d]/40 text-xs font-mono text-neutral-500">
-                No submissions recorded yet. Share your public link to start receiving responses.
+              <div className={`p-12 text-center border border-dashed border-neutral-800 ${currentTheme.cardRadius} bg-[#0d0d0d]/40 text-xs font-mono text-neutral-500`}>
+                No submissions recorded yet. Share your public link to start collecting data.
               </div>
             ) : (
-              <div className="border border-neutral-800 rounded-3xl overflow-x-auto bg-[#0d0d0d]">
+              <div className={`border border-neutral-800 ${currentTheme.cardRadius} overflow-x-auto bg-[#0d0d0d]`}>
                 <table className="w-full text-left text-xs font-mono">
                   <thead className="border-b border-neutral-800 bg-neutral-900/60 text-neutral-400">
                     <tr>
                       <th className="p-4">#</th>
                       <th className="p-4">Submitted At</th>
                       <th className="p-4">Email</th>
-                      <th className="p-4">Contestant Vote</th>
-                      <th className="p-4">Votes Paid</th>
+                      <th className="p-4">Vote Candidate</th>
+                      <th className="p-4">Paid</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-neutral-800/60 text-neutral-300">
@@ -860,19 +945,20 @@ function FormApp() {
 
         {/* TAB 3: SETTINGS */}
         {activeTab === "settings" && (
-          <div className="max-w-xl mx-auto p-6 sm:p-8 rounded-3xl bg-[#0d0d0d] border border-neutral-800 space-y-6">
-            <h3 className="text-sm font-mono text-[#fff7d3] uppercase tracking-wider">Form Preferences</h3>
+          <div className={`max-w-xl mx-auto p-6 sm:p-8 ${currentTheme.cardRadius} bg-[#0d0d0d] border border-neutral-800 space-y-6`}>
+            <h3 className="text-sm font-mono text-white uppercase tracking-wider">Form Preferences</h3>
             
             <div className="flex items-center justify-between border-t border-neutral-800 pt-4">
               <div>
                 <div className="text-xs font-semibold text-white">Accepting Responses</div>
-                <div className="text-[11px] text-neutral-500">Allow users to view and submit this form</div>
+                <div className="text-[11px] text-neutral-500">Allow users to submit this form</div>
               </div>
               <button
                 onClick={() => setSettings({ ...settings, acceptingResponses: !settings.acceptingResponses })}
-                className={`w-8 h-4.5 flex items-center rounded-full p-0.5 cursor-pointer ${
-                  settings.acceptingResponses ? "bg-[#ab1f09]" : "bg-neutral-800"
-                }`}
+                className="w-8 h-4.5 flex items-center rounded-full p-0.5 cursor-pointer"
+                style={{
+                  backgroundColor: settings.acceptingResponses ? currentTheme.accentColor : "#262626",
+                }}
               >
                 <div
                   className={`bg-white w-3.5 h-3.5 rounded-full shadow transform transition-transform ${
@@ -888,13 +974,129 @@ function FormApp() {
                 type="text"
                 value={settings.confirmationMessage}
                 onChange={(e) => setSettings({ ...settings, confirmationMessage: e.target.value })}
-                className="w-full px-4 py-2.5 bg-[#111111] border border-neutral-800 rounded-xl text-xs text-white outline-none focus:border-[#ab1f09]"
+                className="w-full px-4 py-2.5 bg-[#111111] border border-neutral-800 rounded-xl text-xs text-white outline-none"
               />
             </div>
           </div>
         )}
 
       </main>
+
+      {/* ========================================================= */}
+      {/* 3. THEME CUSTOMIZER MODAL DRAWER */}
+      {/* ========================================================= */}
+      {showThemeModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="w-full max-w-md bg-[#0d0d0d] border border-neutral-800 rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xl">
+            
+            <div className="flex items-center justify-between border-b border-neutral-800 pb-4">
+              <div>
+                <h3 className="text-base font-bold text-white">Customize Form Theme</h3>
+                <p className="text-xs text-neutral-400">Pick colors, typography, and card radius.</p>
+              </div>
+              <button
+                onClick={() => setShowThemeModal(false)}
+                className="text-neutral-500 hover:text-white text-xs font-mono cursor-pointer"
+              >
+                CLOSE ✕
+              </button>
+            </div>
+
+            {/* Accent Colors */}
+            <div className="space-y-3">
+              <label className="text-xs font-mono text-neutral-400 uppercase">Accent Theme Color</label>
+              <div className="grid grid-cols-3 gap-2.5">
+                {COLOR_PRESETS.map((preset) => (
+                  <button
+                    key={preset.hex}
+                    onClick={() =>
+                      setSettings({
+                        ...settings,
+                        theme: { ...currentTheme, accentColor: preset.hex },
+                      })
+                    }
+                    className="p-2.5 rounded-xl border flex items-center gap-2 text-xs font-mono transition-all cursor-pointer"
+                    style={{
+                      borderColor: currentTheme.accentColor === preset.hex ? preset.hex : "#262626",
+                      backgroundColor: currentTheme.accentColor === preset.hex ? `${preset.hex}20` : "#111",
+                    }}
+                  >
+                    <span className="w-3 h-3 rounded-full" style={{ backgroundColor: preset.hex }} />
+                    <span className="truncate">{preset.name}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Font Family */}
+            <div className="space-y-3 border-t border-neutral-800 pt-4">
+              <label className="text-xs font-mono text-neutral-400 uppercase">Typography Font</label>
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { id: "font-sans", label: "Sans (Clean)" },
+                  { id: "font-mono", label: "Mono (Tech)" },
+                  { id: "font-serif", label: "Serif (Luxury)" },
+                ].map((f) => (
+                  <button
+                    key={f.id}
+                    onClick={() =>
+                      setSettings({
+                        ...settings,
+                        theme: { ...currentTheme, fontFamily: f.id as any },
+                      })
+                    }
+                    className={`p-2.5 rounded-xl border text-xs text-center transition-all cursor-pointer ${
+                      currentTheme.fontFamily === f.id
+                        ? "bg-neutral-800 border-neutral-500 text-white font-bold"
+                        : "bg-[#111] border-neutral-800 text-neutral-400"
+                    }`}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Card Curvature */}
+            <div className="space-y-3 border-t border-neutral-800 pt-4">
+              <label className="text-xs font-mono text-neutral-400 uppercase">Corner Curvature</label>
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { id: "rounded-xl", label: "Subtle (12px)" },
+                  { id: "rounded-2xl", label: "Smooth (16px)" },
+                  { id: "rounded-3xl", label: "Pill Glass (24px)" },
+                ].map((r) => (
+                  <button
+                    key={r.id}
+                    onClick={() =>
+                      setSettings({
+                        ...settings,
+                        theme: { ...currentTheme, cardRadius: r.id as any },
+                      })
+                    }
+                    className={`p-2.5 rounded-xl border text-xs text-center transition-all cursor-pointer ${
+                      currentTheme.cardRadius === r.id
+                        ? "bg-neutral-800 border-neutral-500 text-white font-bold"
+                        : "bg-[#111] border-neutral-800 text-neutral-400"
+                    }`}
+                  >
+                    {r.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <button
+              onClick={() => setShowThemeModal(false)}
+              className="w-full py-3 text-white font-mono text-xs font-semibold rounded-xl uppercase tracking-wider cursor-pointer"
+              style={{ backgroundColor: currentTheme.accentColor }}
+            >
+              Apply Theme
+            </button>
+
+          </div>
+        </div>
+      )}
 
     </div>
   );
