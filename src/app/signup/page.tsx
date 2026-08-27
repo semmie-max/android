@@ -2,9 +2,11 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function SignupPage() {
   const router = useRouter();
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -44,9 +46,11 @@ export default function SignupPage() {
         throw new Error(data.error || "Failed to create account.");
       }
 
-      // Store JWT token for authentication
+      // Store JWT token, Name, and Email
       if (data.token) {
         localStorage.setItem("rack_token", data.token);
+        localStorage.setItem("rack_user_name", name.trim() || email.split("@")[0]);
+        localStorage.setItem("rack_user_email", email);
       }
 
       // 🚀 Redirect to Dashboard on success
@@ -72,13 +76,13 @@ export default function SignupPage() {
             RACK<span className="text-[#ab1f09]">.</span>
           </span>
         </div>
-        <a
+        <Link
           href="/"
           className="group text-xs font-mono tracking-widest text-neutral-400 hover:text-[#fff7d3] transition-all duration-200 flex items-center gap-2"
         >
           <span className="group-hover:-translate-x-1 transition-transform">←</span> 
           <span>RETURN HOME</span>
-        </a>
+        </Link>
       </header>
 
       {/* Main Container */}
@@ -88,10 +92,8 @@ export default function SignupPage() {
 
         <div className="w-full max-w-6xl border border-neutral-800/80 rounded-2xl overflow-hidden bg-[#0d0d0d]/80 backdrop-blur-2xl grid grid-cols-1 lg:grid-cols-12 shadow-[0_0_80px_rgba(0,0,0,0.9)] relative z-10">
           
-          {/* LEFT SIDE (Visible on Desktop / Wide Screens) */}
+          {/* LEFT SIDE */}
           <div className="hidden lg:flex lg:col-span-7 relative overflow-hidden bg-gradient-to-b from-black via-[#080808] to-[#0d0d0d] p-12 flex-col justify-between border-r border-neutral-800/80">
-            
-            {/* Visual Mesh Overlay */}
             <div 
               className="absolute inset-0 opacity-10 pointer-events-none"
               style={{
@@ -100,7 +102,6 @@ export default function SignupPage() {
               }}
             />
 
-            {/* Top Pill Tag */}
             <div className="relative z-10">
               <span className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-neutral-900/90 border border-neutral-800 text-[11px] font-mono tracking-wider text-[#fff7d3]">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#ab1f09]" />
@@ -108,7 +109,6 @@ export default function SignupPage() {
               </span>
             </div>
 
-            {/* Hero Copy */}
             <div className="relative z-10 space-y-6 my-auto py-12">
               <h1 className="text-4xl xl:text-5xl font-semibold tracking-tight leading-tight text-white">
                 Powering modern events with <span className="text-[#fff7d3] underline decoration-[#ab1f09]/60 underline-offset-8">precision</span>.
@@ -118,7 +118,6 @@ export default function SignupPage() {
               </p>
             </div>
 
-            {/* Bottom Proof Metric Box */}
             <div className="relative z-10 border-t border-neutral-800/80 pt-6 flex items-center justify-between text-xs font-mono text-neutral-500">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-emerald-500" />
@@ -132,8 +131,6 @@ export default function SignupPage() {
 
           {/* RIGHT SIDE (Signup Form) */}
           <div className="lg:col-span-5 p-8 sm:p-12 flex flex-col justify-center bg-[#0a0a0a]/90">
-            
-            {/* Header */}
             <div className="space-y-2 mb-8">
               <div className="lg:hidden inline-flex items-center gap-2 px-2.5 py-1 rounded bg-neutral-900 border border-neutral-800 mb-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#ab1f09]" />
@@ -147,9 +144,28 @@ export default function SignupPage() {
               </p>
             </div>
 
-            {/* Credentials Form */}
             <form onSubmit={handleSubmit} className="space-y-5">
               
+              {/* Full Name / Username Field */}
+              <div className="space-y-1.5">
+                <label 
+                  htmlFor="name" 
+                  className="block text-[10px] font-mono tracking-widest text-neutral-400 uppercase"
+                >
+                  Full Name / Username
+                </label>
+                <input
+                  id="name"
+                  type="text"
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Alex Morgan"
+                  disabled={loading}
+                  className="w-full px-4 py-3 bg-[#111111] border border-neutral-800 rounded-lg text-white placeholder-neutral-600 focus:outline-none focus:border-[#ab1f09] focus:ring-1 focus:ring-[#ab1f09] transition-all text-sm font-sans disabled:opacity-50"
+                />
+              </div>
+
               {/* Email Address Field */}
               <div className="space-y-1.5">
                 <label 
@@ -224,7 +240,7 @@ export default function SignupPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3.5 bg-[#ab1f09] hover:bg-[#c2240b] text-[#fff7d3] font-mono font-medium tracking-wider text-xs transition-all duration-200 rounded-lg uppercase mt-2 shadow-lg shadow-[#ab1f09]/20 hover:shadow-[#ab1f09]/40 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full py-3.5 bg-[#ab1f09] hover:bg-[#c2240b] text-[#fff7d3] font-mono font-medium tracking-wider text-xs transition-all duration-200 rounded-lg uppercase mt-2 shadow-lg shadow-[#ab1f09]/20 hover:shadow-[#ab1f09]/40 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
               >
                 {loading ? (
                   <>
@@ -242,9 +258,9 @@ export default function SignupPage() {
             <div className="mt-8 pt-6 border-t border-neutral-800/60 text-center">
               <p className="text-xs text-neutral-400 font-light">
                 Already have an account?{" "}
-                <a href="/signin" className="text-[#fff7d3] hover:underline font-normal transition-colors">
-  Sign in
-</a>
+                <Link href="/signin" className="text-[#fff7d3] hover:underline font-normal transition-colors">
+                  Sign in
+                </Link>
               </p>
             </div>
 
@@ -253,7 +269,7 @@ export default function SignupPage() {
         </div>
       </main>
 
-      {/* Footer copyright */}
+      {/* Footer */}
       <footer className="w-full py-4 text-center text-[11px] text-neutral-600 font-mono border-t border-neutral-900/60">
         © {new Date().getFullYear()} RACK. ALL RIGHTS RESERVED.
       </footer>

@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function SigninPage() {
   const router = useRouter();
@@ -32,10 +33,13 @@ export default function SigninPage() {
         throw new Error(data.error || "Invalid email or password.");
       }
 
-      // Save token and email for the session & dashboard
+      // Save token and user info
       if (data.token) {
         localStorage.setItem("rack_token", data.token);
         localStorage.setItem("rack_user_email", email);
+        if (!localStorage.getItem("rack_user_name")) {
+          localStorage.setItem("rack_user_name", email.split("@")[0]);
+        }
       }
 
       // 🚀 Redirect straight to Dashboard
@@ -61,13 +65,13 @@ export default function SigninPage() {
             RACK<span className="text-[#ab1f09]">.</span>
           </span>
         </div>
-        <a
+        <Link
           href="/"
           className="group text-xs font-mono tracking-widest text-neutral-400 hover:text-[#fff7d3] transition-all duration-200 flex items-center gap-2"
         >
           <span className="group-hover:-translate-x-1 transition-transform">←</span> 
           <span>RETURN HOME</span>
-        </a>
+        </Link>
       </header>
 
       {/* Main Container */}
@@ -77,10 +81,8 @@ export default function SigninPage() {
 
         <div className="w-full max-w-6xl border border-neutral-800/80 rounded-2xl overflow-hidden bg-[#0d0d0d]/80 backdrop-blur-2xl grid grid-cols-1 lg:grid-cols-12 shadow-[0_0_80px_rgba(0,0,0,0.9)] relative z-10">
           
-          {/* LEFT SIDE (Visible on Desktop / Wide Screens) */}
+          {/* LEFT SIDE */}
           <div className="hidden lg:flex lg:col-span-7 relative overflow-hidden bg-gradient-to-b from-black via-[#080808] to-[#0d0d0d] p-12 flex-col justify-between border-r border-neutral-800/80">
-            
-            {/* Visual Mesh Overlay */}
             <div 
               className="absolute inset-0 opacity-10 pointer-events-none"
               style={{
@@ -89,7 +91,6 @@ export default function SigninPage() {
               }}
             />
 
-            {/* Top Pill Tag */}
             <div className="relative z-10">
               <span className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-neutral-900/90 border border-neutral-800 text-[11px] font-mono tracking-wider text-[#fff7d3]">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#ab1f09]" />
@@ -97,7 +98,6 @@ export default function SigninPage() {
               </span>
             </div>
 
-            {/* Hero Copy */}
             <div className="relative z-10 space-y-6 my-auto py-12">
               <h1 className="text-4xl xl:text-5xl font-semibold tracking-tight leading-tight text-white">
                 Welcome back to your <span className="text-[#fff7d3] underline decoration-[#ab1f09]/60 underline-offset-8">workspace</span>.
@@ -107,7 +107,6 @@ export default function SigninPage() {
               </p>
             </div>
 
-            {/* Bottom Proof Metric Box */}
             <div className="relative z-10 border-t border-neutral-800/80 pt-6 flex items-center justify-between text-xs font-mono text-neutral-500">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-emerald-500" />
@@ -122,7 +121,6 @@ export default function SigninPage() {
           {/* RIGHT SIDE (Login Form) */}
           <div className="lg:col-span-5 p-8 sm:p-12 flex flex-col justify-center bg-[#0a0a0a]/90">
             
-            {/* Header */}
             <div className="space-y-2 mb-8">
               <div className="lg:hidden inline-flex items-center gap-2 px-2.5 py-1 rounded bg-neutral-900 border border-neutral-800 mb-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#ab1f09]" />
@@ -136,7 +134,6 @@ export default function SigninPage() {
               </p>
             </div>
 
-            {/* Credentials Form */}
             <form onSubmit={handleSubmit} className="space-y-5">
               
               {/* Email Address Field */}
@@ -213,9 +210,9 @@ export default function SigninPage() {
             <div className="mt-8 pt-6 border-t border-neutral-800/60 text-center">
               <p className="text-xs text-neutral-400 font-light">
                 Don't have an account?{" "}
-                <a href="/signup" className="text-[#fff7d3] hover:underline font-normal transition-colors">
+                <Link href="/signup" className="text-[#fff7d3] hover:underline font-normal transition-colors">
                   Create one
-                </a>
+                </Link>
               </p>
             </div>
 
@@ -224,7 +221,7 @@ export default function SigninPage() {
         </div>
       </main>
 
-      {/* Footer copyright */}
+      {/* Footer */}
       <footer className="w-full py-4 text-center text-[11px] text-neutral-600 font-mono border-t border-neutral-900/60">
         © {new Date().getFullYear()} RACK. ALL RIGHTS RESERVED.
       </footer>

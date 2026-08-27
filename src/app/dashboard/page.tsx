@@ -2,15 +2,18 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function RackDashboard() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("overview");
   const [displayName, setDisplayName] = useState<string>("Member");
   const [userEmail, setUserEmail] = useState<string>("");
+  const [mounted, setMounted] = useState(false);
 
-  // Check authentication on load
+  // Check authentication & load user data on page load
   useEffect(() => {
+    setMounted(true);
     const token = localStorage.getItem("rack_token");
     if (!token) {
       // If not logged in, redirect to signup
@@ -18,11 +21,11 @@ export default function RackDashboard() {
       return;
     }
 
-    // Load saved name or gmail from storage
+    // Load saved name or email from localStorage
     const savedName = localStorage.getItem("rack_user_name");
     const savedEmail = localStorage.getItem("rack_user_email");
 
-    if (savedName) {
+    if (savedName && savedName.trim() !== "") {
       setDisplayName(savedName);
     } else if (savedEmail) {
       setDisplayName(savedEmail.split("@")[0]);
@@ -41,6 +44,11 @@ export default function RackDashboard() {
     router.push("/signup");
   };
 
+  // Prevent flash before mounted
+  if (!mounted) {
+    return <div className="min-h-screen bg-[#050505]" />;
+  }
+
   return (
     <div className="min-h-screen w-full bg-[#050505] text-white flex flex-col justify-between selection:bg-[#ab1f09] selection:text-[#fff7d3] font-sans antialiased">
       
@@ -51,9 +59,9 @@ export default function RackDashboard() {
             <div className="w-2.5 h-2.5 rounded-full bg-[#ab1f09] z-10 shadow-[0_0_8px_#ab1f09]" />
             <div className="absolute w-4 h-4 rounded-full bg-[#ab1f09]/50 animate-ping" />
           </div>
-          <a href="/" className="font-mono font-bold tracking-widest text-lg text-[#fff7d3] uppercase hover:opacity-80 transition-opacity">
+          <Link href="/" className="font-mono font-bold tracking-widest text-lg text-[#fff7d3] uppercase hover:opacity-80 transition-opacity">
             RACK<span className="text-[#ab1f09]">.</span>
-          </a>
+          </Link>
           <span className="hidden sm:inline-block text-xs font-mono px-2 py-0.5 rounded bg-neutral-900 border border-neutral-800 text-neutral-400 ml-2">
             DASHBOARD
           </span>
@@ -89,7 +97,7 @@ export default function RackDashboard() {
             <div className="absolute top-0 right-0 w-16 h-16 bg-[#ab1f09]/10 rounded-bl-full pointer-events-none transition-all group-hover:bg-[#ab1f09]/20" />
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-neutral-900 border border-neutral-700 flex items-center justify-center font-mono font-bold text-[#fff7d3] shadow-inner uppercase">
-                {displayName.charAt(0)}
+                {displayName ? displayName.charAt(0).toUpperCase() : "M"}
               </div>
               <div className="overflow-hidden">
                 <h3 className="text-sm font-semibold text-white capitalize truncate">{displayName}</h3>
@@ -272,7 +280,7 @@ export default function RackDashboard() {
 
       </div>
 
-      {/* Footer copyright */}
+      {/* Footer */}
       <footer className="w-full py-4 text-center text-[11px] text-neutral-600 font-mono border-t border-neutral-900/60 mt-8">
         © {new Date().getFullYear()} RACK. ALL RIGHTS RESERVED.
       </footer>
