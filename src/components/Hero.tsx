@@ -479,10 +479,88 @@ export default function LandingPage() {
       <ClaritySection />
       <StepProcessSection />
       <CapabilitiesSection />
+      <ResponseInsightsSection />
       <FAQSection />
       <CTASection />
       <Footer />
     </main>
+  );
+}
+
+export function ResponseInsightsSection() {
+  const metrics = [
+    {
+      label: "AVG RESPONSE TIME",
+      value: "140ms",
+      change: "-32% vs last month",
+      description: "Sub-second processing across all connected channels.",
+    },
+    {
+      label: "ACCURACY RATE",
+      value: "99.4%",
+      change: "+2.1% efficiency",
+      description: "Automated routing with zero critical margin for error.",
+    },
+    {
+      label: "TASKS AUTOMATED",
+      value: "1.2M+",
+      change: "Active workflows",
+      description: "Repetitive execution handled completely hands-free.",
+    },
+  ];
+
+  return (
+    <section className="w-full bg-black text-white py-16 px-4 sm:px-8 border-b border-neutral-800">
+      <div className="max-w-6xl mx-auto border border-neutral-800 rounded-xl overflow-hidden bg-[#0a0a0a] p-8 sm:p-14">
+        
+        {/* Header Block */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+          <div className="space-y-4 max-w-xl">
+            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-black/60 border border-neutral-800">
+              <span className="w-2 h-2 rounded-full bg-[#ab1f09]" />
+              <span className="text-xs font-mono tracking-widest text-[#fff7d3] uppercase">
+                ANALYTICS & PERFORMANCE
+              </span>
+            </div>
+            <h2 className="text-3xl sm:text-5xl font-semibold tracking-tight text-white">
+              Response Insights
+            </h2>
+          </div>
+          <p className="text-sm text-neutral-400 max-w-sm leading-relaxed">
+            Real-time visual data on how intelligent automation optimizes performance and reduces operational friction.
+          </p>
+        </div>
+
+        {/* Metrics Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {metrics.map((item, idx) => (
+            <div
+              key={idx}
+              className="p-6 sm:p-8 rounded-lg bg-neutral-900/50 border border-neutral-800/80 flex flex-col justify-between space-y-6 hover:border-[#ab1f09]/50 transition-colors group"
+            >
+              <div className="space-y-3">
+                <span className="text-[11px] font-mono tracking-widest text-neutral-500 uppercase">
+                  {item.label}
+                </span>
+                <div className="text-4xl sm:text-5xl font-bold tracking-tight text-white group-hover:text-[#fff7d3] transition-colors">
+                  {item.value}
+                </div>
+              </div>
+
+              <div className="space-y-2 pt-4 border-t border-neutral-800/60">
+                <span className="inline-block text-xs font-mono text-[#ab1f09] bg-[#ab1f09]/10 px-2 py-0.5 rounded border border-[#ab1f09]/30">
+                  {item.change}
+                </span>
+                <p className="text-xs text-neutral-400 leading-relaxed">
+                  {item.description}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+      </div>
+    </section>
   );
 }
 
