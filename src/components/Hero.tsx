@@ -242,7 +242,7 @@ export function Footer() {
               <span className="inline-block w-[2px] h-5 bg-[#ab1f09] ml-0.5 animate-pulse" />
             </h2>
             <p className="text-xs text-neutral-400 max-w-xs leading-relaxed">
-              A modern approach to forms,<br> built to make collecting information simpler and more effective.</br>
+              A modern approach to forms,<br /> built to make collecting information simpler and more effective.
             </p>
 
             {/* Social Icons */}
