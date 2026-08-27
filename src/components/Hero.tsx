@@ -479,8 +479,66 @@ export default function LandingPage() {
       <ClaritySection />
       <StepProcessSection />
       <CapabilitiesSection />
+      <CTASection />
       <Footer />
     </main>
+  );
+}
+
+export function CTASection() {
+  return (
+    <section className="w-full bg-black text-white py-12 px-4 sm:px-8 border-b border-neutral-800">
+      <div className="max-w-6xl mx-auto border border-neutral-800 rounded-xl overflow-hidden relative">
+        
+        {/* Rust Brand Dynamic Background Layer with Grain */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black via-[#ab1f09]/80 to-[#ab1f09] opacity-90" />
+        
+        {/* Texturized Grid/Dot Mesh Pattern Overlay */}
+        <div 
+          className="absolute inset-0 opacity-25 mix-blend-overlay pointer-events-none" 
+          style={{
+            backgroundImage: `radial-gradient(#fff7d3 1px, transparent 1px)`,
+            backgroundSize: "12px 12px",
+          }}
+        />
+
+        {/* Content Container */}
+        <div className="relative z-10 p-8 sm:p-14 flex flex-col md:flex-row md:items-end justify-between gap-8 min-h-[320px]">
+          
+          {/* Left Text Block */}
+          <div className="space-y-6 max-w-xl">
+            {/* Top Pill Badge */}
+            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-black/60 border border-neutral-700/60 backdrop-blur-md">
+              <span className="w-4 h-4 rounded bg-[#ab1f09] flex items-center justify-center text-[10px] text-[#fff7d3]">
+                ⚡
+              </span>
+              <span className="text-xs font-mono tracking-widest text-[#fff7d3] uppercase">
+                CTA
+              </span>
+            </div>
+
+            {/* Main Headline */}
+            <h2 className="text-3xl sm:text-5xl font-semibold tracking-tight text-white leading-tight">
+              Build faster. <br />
+              Work smarter.
+            </h2>
+
+            {/* Description */}
+            <p className="text-sm sm:text-base text-neutral-300 leading-relaxed max-w-md">
+              Designed to help teams automate processes and focus on what truly matters.
+            </p>
+          </div>
+
+          {/* Right Action Button */}
+          <div className="pt-4 md:pt-0">
+            <button className="w-full sm:w-auto px-8 py-3.5 bg-white text-black font-semibold tracking-wider text-sm hover:bg-[#fff7d3] transition-colors rounded-none uppercase">
+              GET STARTED
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </section>
   );
 }
 
