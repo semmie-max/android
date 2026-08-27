@@ -3,34 +3,22 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 
-export default function SignupPage() {
+export default function SigninPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-
-    if (password !== confirmPassword) {
-      setError("Passwords do not match.");
-      return;
-    }
-
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters long.");
-      return;
-    }
-
     setLoading(true);
 
     try {
       const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
-      const res = await fetch(`${API_URL}/api/signup`, {
+      const res = await fetch(`${API_URL}/api/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -41,15 +29,16 @@ export default function SignupPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || "Failed to create account.");
+        throw new Error(data.error || "Invalid email or password.");
       }
 
-      // Store JWT token for authentication
+      // Save token and email for the session & dashboard
       if (data.token) {
         localStorage.setItem("rack_token", data.token);
+        localStorage.setItem("rack_user_email", email);
       }
 
-      // 🚀 Redirect to Dashboard on success
+      // 🚀 Redirect straight to Dashboard
       router.push("/dashboard");
     } catch (err: any) {
       setError(err.message || "Network error. Please try again.");
@@ -104,17 +93,17 @@ export default function SignupPage() {
             <div className="relative z-10">
               <span className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-neutral-900/90 border border-neutral-800 text-[11px] font-mono tracking-wider text-[#fff7d3]">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#ab1f09]" />
-                INFRASTRUCTURE V2.0
+                PORTAL ACCESS
               </span>
             </div>
 
             {/* Hero Copy */}
             <div className="relative z-10 space-y-6 my-auto py-12">
               <h1 className="text-4xl xl:text-5xl font-semibold tracking-tight leading-tight text-white">
-                Powering modern events with <span className="text-[#fff7d3] underline decoration-[#ab1f09]/60 underline-offset-8">precision</span>.
+                Welcome back to your <span className="text-[#fff7d3] underline decoration-[#ab1f09]/60 underline-offset-8">workspace</span>.
               </h1>
               <p className="text-neutral-400 text-sm xl:text-base leading-relaxed max-w-lg font-light">
-                Access your dashboard to manage ticketing, analyze automated response insights, and scale your audience seamlessly.
+                Sign in to access your event dashboards, monitor real-time audience analytics, and manage active Racks.
               </p>
             </div>
 
@@ -122,7 +111,7 @@ export default function SignupPage() {
             <div className="relative z-10 border-t border-neutral-800/80 pt-6 flex items-center justify-between text-xs font-mono text-neutral-500">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                <span>SYSTEM STATUS: <span className="text-neutral-200">ONLINE</span></span>
+                <span>GATEWAY: <span className="text-neutral-200">ACTIVE</span></span>
               </div>
               <div>
                 <span>ENCRYPTION: <span className="text-[#ab1f09]">256-BIT</span></span>
@@ -130,20 +119,20 @@ export default function SignupPage() {
             </div>
           </div>
 
-          {/* RIGHT SIDE (Signup Form) */}
+          {/* RIGHT SIDE (Login Form) */}
           <div className="lg:col-span-5 p-8 sm:p-12 flex flex-col justify-center bg-[#0a0a0a]/90">
             
             {/* Header */}
             <div className="space-y-2 mb-8">
               <div className="lg:hidden inline-flex items-center gap-2 px-2.5 py-1 rounded bg-neutral-900 border border-neutral-800 mb-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#ab1f09]" />
-                <span className="text-[10px] font-mono tracking-widest text-[#fff7d3] uppercase">SIGN UP</span>
+                <span className="text-[10px] font-mono tracking-widest text-[#fff7d3] uppercase">SIGN IN</span>
               </div>
               <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-white">
-                Create your account
+                Access account
               </h2>
               <p className="text-xs sm:text-sm text-neutral-400 font-light">
-                Fill in the details below to get started.
+                Enter your credentials to enter your dashboard.
               </p>
             </div>
 
@@ -172,38 +161,20 @@ export default function SignupPage() {
 
               {/* Password Field */}
               <div className="space-y-1.5">
-                <label 
-                  htmlFor="password" 
-                  className="block text-[10px] font-mono tracking-widest text-neutral-400 uppercase"
-                >
-                  Password
-                </label>
+                <div className="flex items-center justify-between">
+                  <label 
+                    htmlFor="password" 
+                    className="block text-[10px] font-mono tracking-widest text-neutral-400 uppercase"
+                  >
+                    Password
+                  </label>
+                </div>
                 <input
                   id="password"
                   type="password"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  disabled={loading}
-                  className="w-full px-4 py-3 bg-[#111111] border border-neutral-800 rounded-lg text-white placeholder-neutral-600 focus:outline-none focus:border-[#ab1f09] focus:ring-1 focus:ring-[#ab1f09] transition-all text-sm font-sans disabled:opacity-50"
-                />
-              </div>
-
-              {/* Confirm Password Field */}
-              <div className="space-y-1.5">
-                <label 
-                  htmlFor="confirmPassword" 
-                  className="block text-[10px] font-mono tracking-widest text-neutral-400 uppercase"
-                >
-                  Confirm Password
-                </label>
-                <input
-                  id="confirmPassword"
-                  type="password"
-                  required
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="••••••••"
                   disabled={loading}
                   className="w-full px-4 py-3 bg-[#111111] border border-neutral-800 rounded-lg text-white placeholder-neutral-600 focus:outline-none focus:border-[#ab1f09] focus:ring-1 focus:ring-[#ab1f09] transition-all text-sm font-sans disabled:opacity-50"
@@ -224,15 +195,15 @@ export default function SignupPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3.5 bg-[#ab1f09] hover:bg-[#c2240b] text-[#fff7d3] font-mono font-medium tracking-wider text-xs transition-all duration-200 rounded-lg uppercase mt-2 shadow-lg shadow-[#ab1f09]/20 hover:shadow-[#ab1f09]/40 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full py-3.5 bg-[#ab1f09] hover:bg-[#c2240b] text-[#fff7d3] font-mono font-medium tracking-wider text-xs transition-all duration-200 rounded-lg uppercase mt-2 shadow-lg shadow-[#ab1f09]/20 hover:shadow-[#ab1f09]/40 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
               >
                 {loading ? (
                   <>
                     <span className="w-3.5 h-3.5 border-2 border-[#fff7d3] border-t-transparent rounded-full animate-spin" />
-                    <span>CREATING ACCOUNT...</span>
+                    <span>AUTHENTICATING...</span>
                   </>
                 ) : (
-                  <span>SIGN UP</span>
+                  <span>Sign In</span>
                 )}
               </button>
 
@@ -241,10 +212,10 @@ export default function SignupPage() {
             {/* Footer Navigation Link */}
             <div className="mt-8 pt-6 border-t border-neutral-800/60 text-center">
               <p className="text-xs text-neutral-400 font-light">
-                Already have an account?{" "}
-                <a href="/signin" className="text-[#fff7d3] hover:underline font-normal transition-colors">
-  Sign in
-</a>
+                Don't have an account?{" "}
+                <a href="/signup" className="text-[#fff7d3] hover:underline font-normal transition-colors">
+                  Create one
+                </a>
               </p>
             </div>
 
