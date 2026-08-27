@@ -1,14 +1,17 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function SignupPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
@@ -17,19 +20,42 @@ export default function SignupPage() {
       return;
     }
 
-    const existingUsers = JSON.parse(localStorage.getItem("rack_users") || "[]");
-    const userExists = existingUsers.some((user: { email: string }) => user.email === email);
-
-    if (userExists) {
-      setError("An account with this email already exists.");
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters long.");
       return;
     }
 
-    const newUser = { email, password };
-    existingUsers.push(newUser);
-    localStorage.setItem("rack_users", JSON.stringify(existingUsers));
+    setLoading(true);
 
-    console.log("Account created and saved:", newUser);
+    try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
+      const res = await fetch(`${API_URL}/api/signup`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to create account.");
+      }
+
+      // Store JWT token for authentication
+      if (data.token) {
+        localStorage.setItem("rack_token", data.token);
+      }
+
+      // Redirect to login or home dashboard on success
+      router.push("/login?registered=true");
+    } catch (err: any) {
+      setError(err.message || "Network error. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -104,7 +130,7 @@ export default function SignupPage() {
             </div>
           </div>
 
-          {/* RIGHT SIDE (Signup Form - Normal on Mobile, Right side on Desktop) */}
+          {/* RIGHT SIDE (Signup Form) */}
           <div className="lg:col-span-5 p-8 sm:p-12 flex flex-col justify-center bg-[#0a0a0a]/90">
             
             {/* Header */}
@@ -139,7 +165,8 @@ export default function SignupPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@gmail.com"
-                  className="w-full px-4 py-3 bg-[#111111] border border-neutral-800 rounded-lg text-white placeholder-neutral-600 focus:outline-none focus:border-[#ab1f09] focus:ring-1 focus:ring-[#ab1f09] transition-all text-sm font-sans"
+                  disabled={loading}
+                  className="w-full px-4 py-3 bg-[#111111] border border-neutral-800 rounded-lg text-white placeholder-neutral-600 focus:outline-none focus:border-[#ab1f09] focus:ring-1 focus:ring-[#ab1f09] transition-all text-sm font-sans disabled:opacity-50"
                 />
               </div>
 
@@ -158,7 +185,8 @@ export default function SignupPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full px-4 py-3 bg-[#111111] border border-neutral-800 rounded-lg text-white placeholder-neutral-600 focus:outline-none focus:border-[#ab1f09] focus:ring-1 focus:ring-[#ab1f09] transition-all text-sm font-sans"
+                  disabled={loading}
+                  className="w-full px-4 py-3 bg-[#111111] border border-neutral-800 rounded-lg text-white placeholder-neutral-600 focus:outline-none focus:border-[#ab1f09] focus:ring-1 focus:ring-[#ab1f09] transition-all text-sm font-sans disabled:opacity-50"
                 />
               </div>
 
@@ -177,7 +205,8 @@ export default function SignupPage() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full px-4 py-3 bg-[#111111] border border-neutral-800 rounded-lg text-white placeholder-neutral-600 focus:outline-none focus:border-[#ab1f09] focus:ring-1 focus:ring-[#ab1f09] transition-all text-sm font-sans"
+                  disabled={loading}
+                  className="w-full px-4 py-3 bg-[#111111] border border-neutral-800 rounded-lg text-white placeholder-neutral-600 focus:outline-none focus:border-[#ab1f09] focus:ring-1 focus:ring-[#ab1f09] transition-all text-sm font-sans disabled:opacity-50"
                 />
               </div>
 
@@ -194,9 +223,17 @@ export default function SignupPage() {
               {/* Submit Button */}
               <button
                 type="submit"
-                className="w-full py-3.5 bg-[#ab1f09] hover:bg-[#c2240b] text-[#fff7d3] font-mono font-medium tracking-wider text-xs transition-all duration-200 rounded-lg uppercase mt-2 shadow-lg shadow-[#ab1f09]/20 hover:shadow-[#ab1f09]/40 active:scale-[0.99]"
+                disabled={loading}
+                className="w-full py-3.5 bg-[#ab1f09] hover:bg-[#c2240b] text-[#fff7d3] font-mono font-medium tracking-wider text-xs transition-all duration-200 rounded-lg uppercase mt-2 shadow-lg shadow-[#ab1f09]/20 hover:shadow-[#ab1f09]/40 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                Sign Up
+                {loading ? (
+                  <>
+                    <span className="w-3.5 h-3.5 border-2 border-[#fff7d3] border-t-transparent rounded-full animate-spin" />
+                    <span>CREATING ACCOUNT...</span>
+                  </>
+                ) : (
+                  <span>SIGN UP</span>
+                )}
               </button>
 
             </form>
