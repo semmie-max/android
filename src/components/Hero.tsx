@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import ChromaticBackground from "./ChromaticBackground";
+
 export function Hero() {
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -484,7 +485,7 @@ export default function LandingPage() {
 }
 
 export function StepProcessSection() {
-  const [activeTab, setActiveTab] = useState<"connect" | "process" | "execute">("connect");
+  const [activeTab, setActiveTab] = useState("connect");
 
   const stepsData = {
     connect: {
@@ -531,7 +532,7 @@ export function StepProcessSection() {
     },
   };
 
-  const currentStep = stepsData[activeTab];
+  const currentStep = stepsData[activeTab as keyof typeof stepsData];
 
   return (
     <section className="w-full bg-black text-white py-12 px-4 sm:px-8 border-b border-neutral-800">
