@@ -491,24 +491,24 @@ export function FAQSection() {
 
   const faqs = [
     {
-      question: "How does the platform integrate with our existing tools?",
+      question: "What is Rack?",
       answer:
-        "Our platform connects seamlessly via standard APIs and webhooks. You can link your existing workflows, data sources, and services in just a few clicks.",
+        "Rack is a modern form builder that helps you create, share, and manage forms while making it easier to collect and understand responses.",
     },
     {
-      question: "Is my data secure and private?",
+      question: "Can I customize my forms?",
       answer:
-        "Yes, security is built into every layer. We utilize end-to-end encryption for data in transit and at rest, maintaining strict access controls throughout your environment.",
+        "YYes. You can customize your forms with different question types, layouts, and settings to match your needs.",
     },
     {
-      question: "Can I customize the automated workflows?",
+      question: "Do I need coding experience to use Rack?",
       answer:
-        "Absolutely. You have full control over the parameters, triggers, and execution steps to match your team's specific requirements.",
+        "No. Rack is designed to help anyone create powerful forms without needing technical skills.",
     },
     {
-      question: "What kind of support do you offer?",
+      question: "Can I view and manage responses?",
       answer:
-        "We offer round-the-clock technical support, dedicated account management for teams, and comprehensive documentation to ensure continuous uptime.",
+        "Yes. Rack helps you organize, review, and manage all responses in one place.",
     },
   ];
 
