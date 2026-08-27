@@ -317,3 +317,123 @@ export default function LandingPage() {
     </main>
   );
 }
+export function CapabilitiesSection() {
+  return (
+    <section className="relative w-full bg-black text-white py-16 sm:py-24 px-4 sm:px-8 overflow-hidden border-b border-white/10">
+      {/* Background Radial Glow */}
+      <div className="absolute top-1/2 right-1/4 -translate-y-1/2 w-[500px] h-[500px] bg-[#ab1f09]/15 rounded-full blur-[140px] pointer-events-none" />
+
+      <div className="relative z-10 max-w-6xl mx-auto space-y-12">
+        {/* Top Header Block */}
+        <div className="space-y-4 text-left">
+          {/* Badge */}
+          <div className="inline-flex items-center gap-2 rounded-md border border-[#ab1f09]/40 bg-[#ab1f09]/15 px-3 py-1 text-xs font-mono font-semibold text-[#fff7d3] uppercase tracking-wider">
+            <span>.</span> RACK CAPABILITIES
+          </div>
+
+          {/* Title */}
+          <h2 className="text-3xl sm:text-5xl lg:text-6xl font-medium tracking-tight leading-[1.15]">
+            Built for <span className="text-[#fff7d3]">simplicity</span> and{" "}
+            <span className="text-[#ab1f09]">collaboration.</span>
+          </h2>
+        </div>
+
+        {/* Feature Cards Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Card 1: Instant Data Inputs */}
+          <div className="rounded-2xl border border-neutral-800 bg-neutral-900/40 overflow-hidden flex flex-col justify-between backdrop-blur-md group hover:border-[#ab1f09]/40 transition duration-300">
+            {/* Card Content Top */}
+            <div className="p-6 sm:p-8 space-y-2">
+              <h3 className="text-xl sm:text-2xl font-semibold text-white">
+                Powerful Form Builder
+              </h3>
+              <p className="text-xs sm:text-sm text-neutral-400 max-w-sm leading-relaxed">
+                Create beautiful forms with flexible layouts, question types, and customization.
+              </p>
+            </div>
+
+            {/* Card Graphic Area */}
+            <div className="relative h-64 sm:h-72 w-full bg-gradient-to-br from-[#ab1f09]/40 via-[#ab1f09]/20 to-neutral-950 flex items-center justify-center p-6 overflow-hidden">
+              {/* Decorative Mesh Grid Lines */}
+              <div className="absolute inset-0 bg-[radial-gradient(#fff7d3_1px,transparent_1px)] [background-size:16px_16px] opacity-10" />
+
+              {/* Upload Card Mockup */}
+              <div className="relative z-10 w-full max-w-xs rounded-xl border border-neutral-700/80 bg-neutral-950/90 p-4 shadow-2xl space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium text-white">Create your form</span>
+                  <span className="text-[10px] text-neutral-500 border border-neutral-700 rounded-full h-4 w-4 flex items-center justify-center">i</span>
+                </div>
+
+                <div className="flex items-center gap-2 rounded-lg border border-dashed border-neutral-700 bg-neutral-900/60 p-2.5 text-xs text-neutral-400">
+                  <span>📤</span>
+                  <span>Add a question...</span>
+                </div>
+
+                <div className="flex items-center gap-2 pt-1">
+                  <button className="rounded-md bg-[#ab1f09] px-3 py-1 text-[11px] font-bold text-[#fff7d3]">
+                    ADD QUESTION
+                  </button>
+                  <button className="rounded-md bg-neutral-800 px-3 py-1 text-[11px] font-medium text-neutral-400">
+                    CANCEL
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 2: Live AI Insights */}
+          <div className="rounded-2xl border border-neutral-800 bg-neutral-900/40 overflow-hidden flex flex-col justify-between backdrop-blur-md group hover:border-[#ab1f09]/40 transition duration-300">
+            {/* Card Content Top */}
+            <div className="p-6 sm:p-8 space-y-2">
+              <h3 className="text-xl sm:text-2xl font-semibold text-white">
+                Response Management
+              </h3>
+              <p className="text-xs sm:text-sm text-neutral-400 max-w-sm leading-relaxed">
+                Organize, review, and manage all responses in one place.
+              </p>
+            </div>
+
+            {/* Card Graphic Area */}
+            <div className="relative h-64 sm:h-72 w-full bg-gradient-to-bl from-[#ab1f09]/40 via-[#ab1f09]/20 to-neutral-950 flex items-center justify-center p-6 overflow-hidden">
+              {/* Decorative Mesh Grid Lines */}
+              <div className="absolute inset-0 bg-[radial-gradient(#fff7d3_1px,transparent_1px)] [background-size:16px_16px] opacity-10" />
+
+              {/* Analytics Card Mockup */}
+              <div className="relative z-10 w-full max-w-xs rounded-xl border border-neutral-700/80 bg-neutral-950/90 p-4 shadow-2xl space-y-3">
+                <div className="flex items-center justify-between border-b border-neutral-800 pb-2 text-[10px] text-neutral-400">
+                  <span className="text-[#fff7d3] font-semibold border-b border-[#fff7d3] pb-0.5">7d</span>
+                  <span>1m</span>
+                  <span>3m</span>
+                </div>
+
+                <div className="space-y-0.5">
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-xl font-bold text-white">2,354 responses</span>
+                    <span className="text-[10px] text-emerald-400 font-medium">↑ 2.5%</span>
+                  </div>
+                </div>
+
+                {/* SVG Sparkline Graph */}
+                <div className="h-10 w-full pt-1">
+                  <svg className="w-full h-full overflow-visible" viewBox="0 0 100 30">
+                    <path
+                      d="M 0 25 Q 20 5, 40 20 T 80 10 T 100 5"
+                      fill="none"
+                      stroke="#fff7d3"
+                      strokeWidth="2"
+                    />
+                  </svg>
+                </div>
+
+                <div className="flex items-center justify-between text-[10px] text-neutral-500 pt-1 border-t border-neutral-800/80">
+                  <span>View all responses</span>
+                  <span>›</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
