@@ -6,7 +6,8 @@ import { useRouter } from "next/navigation";
 export default function RackDashboard() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("overview");
-  const [userEmail, setUserEmail] = useState<string>("Member");
+  const [displayName, setDisplayName] = useState<string>("Member");
+  const [userEmail, setUserEmail] = useState<string>("");
 
   // Check authentication on load
   useEffect(() => {
@@ -17,16 +18,25 @@ export default function RackDashboard() {
       return;
     }
 
-    // Attempt to read stored email or decode token if available
+    // Load saved name or gmail from storage
+    const savedName = localStorage.getItem("rack_user_name");
     const savedEmail = localStorage.getItem("rack_user_email");
+
+    if (savedName) {
+      setDisplayName(savedName);
+    } else if (savedEmail) {
+      setDisplayName(savedEmail.split("@")[0]);
+    }
+
     if (savedEmail) {
-      setUserEmail(savedEmail.split("@")[0]);
+      setUserEmail(savedEmail);
     }
   }, [router]);
 
   // Handle Logout
   const handleLogout = () => {
     localStorage.removeItem("rack_token");
+    localStorage.removeItem("rack_user_name");
     localStorage.removeItem("rack_user_email");
     router.push("/signup");
   };
@@ -79,11 +89,11 @@ export default function RackDashboard() {
             <div className="absolute top-0 right-0 w-16 h-16 bg-[#ab1f09]/10 rounded-bl-full pointer-events-none transition-all group-hover:bg-[#ab1f09]/20" />
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-neutral-900 border border-neutral-700 flex items-center justify-center font-mono font-bold text-[#fff7d3] shadow-inner uppercase">
-                {userEmail.charAt(0)}
+                {displayName.charAt(0)}
               </div>
-              <div>
-                <h3 className="text-sm font-semibold text-white capitalize">{userEmail}</h3>
-                <p className="text-[11px] font-mono text-neutral-400">Pro Plan Member</p>
+              <div className="overflow-hidden">
+                <h3 className="text-sm font-semibold text-white capitalize truncate">{displayName}</h3>
+                <p className="text-[11px] font-mono text-neutral-400 truncate">{userEmail || "Pro Plan Member"}</p>
               </div>
             </div>
           </div>
@@ -145,7 +155,7 @@ export default function RackDashboard() {
                 WORKSPACE OVERVIEW
               </span>
               <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-white capitalize">
-                Welcome back, <span className="text-[#fff7d3]">{userEmail}</span>
+                Welcome back, <span className="text-[#fff7d3]">{displayName}</span>
               </h1>
               <p className="text-xs sm:text-sm text-neutral-400 font-light max-w-xl">
                 Manage your active Racks, review recent metrics, and construct new workspaces from your control panel.
@@ -235,7 +245,7 @@ export default function RackDashboard() {
             </div>
           </div>
 
-          {/* Your Racks - Empty State Section */}
+          {/* Your Racks Section */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-xs font-mono tracking-widest text-neutral-400 uppercase">Your Racks</h2>
