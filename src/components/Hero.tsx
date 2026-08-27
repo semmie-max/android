@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import ChromaticBackground from "./ChromaticBackground";
+import Link from "next/link";
 
 export function Hero() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -90,9 +91,11 @@ export function Hero() {
           <span className={`block h-0.5 w-4 bg-[#fff7d3] transition-transform duration-300 ${menuOpen ? "-rotate-45 -translate-y-[6px]" : ""}`} />
         </button>
 
-        <button className="rounded-full border border-[#ab1f09]/50 bg-[#ab1f09]/20 px-4 sm:px-5 py-1.5 text-xs sm:text-sm font-medium text-[#fff7d3] hover:bg-[#ab1f09]/40 transition">
-         Build a form
-        </button>
+        <Link href="/your-page">
+  <button className="rounded-full border border-[#ab1f09]/50 bg-[#ab1f09]/20 px-4 sm:px-5 py-1.5 text-xs sm:text-sm font-medium text-[#fff7d3] hover:bg-[#ab1f09]/40 transition">
+    Get started
+  </button>
+</Link>
       </nav>
 
       {/* Mobile Dropdown - Grid Layout */}
@@ -544,9 +547,9 @@ export function ResponseInsightsSection() {
 
   // Counting values
   const count1 = useCountUp(3.2, 2000, isVisible, 1);
-  const count2 = useCountUp(80, 2000, isVisible, 0);
+  const count2 = useCountUp(100, 2000, isVisible, 0);
   const count3 = useCountUp(4.6, 2000, isVisible, 1);
-  const count4 = useCountUp(65, 2000, isVisible, 0);
+  const count4 = useCountUp(100, 2000, isVisible, 0);
 
   return (
     <section ref={sectionRef} className="w-full bg-black text-white py-12 px-4 sm:px-8 border-b border-neutral-800">
