@@ -210,11 +210,11 @@ export function ClaritySection() {
         {/* Left Content Column */}
         <div className="lg:col-span-6 space-y-6 sm:space-y-8 text-left">
           <h2 className="text-3xl sm:text-5xl lg:text-6xl font-medium tracking-tight leading-[1.15]">
-            <span className="text-[#ab1f09]">Clarity</span> and <span className="text-[#ab1f09]">Control</span> in Every Click — <span className="text-[#ab1f09]">Streamline</span>, Track, and <span className="text-[#ab1f09]">Grow</span> with Ease
+            <span className="text-[#ab1f09]">Build</span> powerful <span className="text-[#ab1f09]">Forms,</span> Survey <span className="text-[#ab1f09]">and Workflows</span> without limits.
           </h2>
 
           <p className="text-xs sm:text-sm text-neutral-400 max-w-md leading-relaxed">
-            Simplify operations, gain instant insights, and accelerate growth with intelligent automation designed to keep your business running smarter and faster.
+            Build forms that feel simple for creators and seamless for everyone who responds.
           </p>
 
           <div className="pt-2">
