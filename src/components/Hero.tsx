@@ -476,9 +476,170 @@ export default function LandingPage() {
     <main className="bg-black min-h-screen">
       <Hero />
       <ClaritySection />
+      <StepProcessSection />
       <CapabilitiesSection />
       <Footer />
     </main>
+  );
+}
+"use client";
+
+export function StepProcessSection() {
+  const [activeTab, setActiveTab] = useState<"connect" | "process" | "execute">("connect");
+
+  const stepsData = {
+    connect: {
+      stepLabel: "Step: 1",
+      title: "Connect your data",
+      description:
+        "Design powerful forms with flexible questions, custom layouts, and everything you need to collect the right information.",
+      number: "01",
+      footerText: "Create your form",
+      imageLeft: false, // Text on left, Image on right
+      icon: (
+        <svg className="w-8 h-8 text-[#fff7d3]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+        </svg>
+      ),
+    },
+    process: {
+      stepLabel: "Step: 2",
+      title: "AI processes everything",
+      description:
+        "Send your form anywhere with a simple link and start collecting responses instantly.",
+      number: "02",
+      footerText: "Share with your audience",
+      imageLeft: true, // Image on left, Text on right (Matches Image 2)
+      icon: (
+        <svg className="w-8 h-8 text-[#fff7d3]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg>
+      ),
+    },
+    execute: {
+      stepLabel: "Step: 3",
+      title: "Execute with precision",
+      description:
+        "Review submissions, discover insights, and make better decisions with organized response data.",
+      number: "03",
+      footerText: "Analyze your responses",
+      imageLeft: false, // Text on left, Image on right
+      icon: (
+        <svg className="w-8 h-8 text-[#fff7d3]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15.536a5 5 0 010-7.072m-2.828 9.9a9 9 0 010-12.728M12 12h.01" />
+        </svg>
+      ),
+    },
+  };
+
+  const currentStep = stepsData[activeTab];
+
+  return (
+    <section className="w-full bg-black text-white py-12 px-4 sm:px-8 border-b border-neutral-800">
+      <div className="max-w-6xl mx-auto border border-neutral-800 rounded-xl overflow-hidden bg-[#0a0a0a]">
+        
+        {/* Top Navigation Tabs */}
+        <div className="grid grid-cols-3 border-b border-neutral-800 text-sm sm:text-base font-medium">
+          <button
+            onClick={() => setActiveTab("connect")}
+            className={`py-5 px-4 flex items-center justify-center gap-3 border-r border-neutral-800 transition-all ${
+              activeTab === "connect"
+                ? "bg-neutral-900/80 text-white border-b-2 border-b-[#ab1f09]"
+                : "text-neutral-500 hover:text-neutral-300"
+            }`}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+            </svg>
+            <span className="text-lg sm:text-xl font-semibold">Connect</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab("process")}
+            className={`py-5 px-4 flex items-center justify-center gap-3 border-r border-neutral-800 transition-all ${
+              activeTab === "process"
+                ? "bg-neutral-900/80 text-white border-b-2 border-b-[#ab1f09]"
+                : "text-neutral-500 hover:text-neutral-300"
+            }`}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            <span className="text-lg sm:text-xl font-semibold">Process</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab("execute")}
+            className={`py-5 px-4 flex items-center justify-center gap-3 transition-all ${
+              activeTab === "execute"
+                ? "bg-neutral-900/80 text-white border-b-2 border-b-[#ab1f09]"
+                : "text-neutral-500 hover:text-neutral-300"
+            }`}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15.536a5 5 0 010-7.072m-2.828 9.9a9 9 0 010-12.728M12 12h.01" />
+            </svg>
+            <span className="text-lg sm:text-xl font-semibold">Execute</span>
+          </button>
+        </div>
+
+        {/* Content Section - Grid swaps sides dynamically */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 min-h-[420px]">
+          
+          {/* Text Content Block */}
+          <div
+            className={`lg:col-span-6 p-8 sm:p-12 flex flex-col justify-between border-neutral-800 ${
+              currentStep.imageLeft ? "order-2 lg:border-l" : "order-1 lg:border-r border-b lg:border-b-0"
+            }`}
+          >
+            <div className="space-y-6">
+              <span className="inline-block px-3 py-1 rounded bg-neutral-900 border border-neutral-800 text-xs font-mono text-neutral-400">
+                {currentStep.stepLabel}
+              </span>
+
+              <h3 className="text-2xl sm:text-4xl font-semibold tracking-tight text-white">
+                {currentStep.title}
+              </h3>
+
+              <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed max-w-md">
+                {currentStep.description}
+              </p>
+
+              <div className="text-6xl sm:text-8xl font-bold text-neutral-900 select-none pt-4">
+                {currentStep.number}
+              </div>
+            </div>
+
+            {/* Bottom Label Line */}
+            <div className="pt-8 border-t border-neutral-900 flex items-center justify-between text-[11px] tracking-widest text-neutral-500 font-mono">
+              <span>|</span>
+              <span>{currentStep.footerText}</span>
+              <span>|</span>
+            </div>
+          </div>
+
+          {/* Animated Graphic Canvas Area (Rust Brand Colored Wave) */}
+          <div
+            className={`lg:col-span-6 relative overflow-hidden flex items-center justify-center p-8 bg-black ${
+              currentStep.imageLeft ? "order-1 border-b lg:border-b-0" : "order-2"
+            }`}
+          >
+            {/* Animated Brand Color Moving Glow Background */}
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-[#ab1f09]/60 via-[#ab1f09]/20 to-black animate-pulse duration-1000" />
+            
+            {/* Moving Wavy Noise Overlay */}
+            <div className="absolute inset-0 bg-[radial-gradient(#fff7d3_1px,transparent_1px)] [background-size:12px_12px] opacity-20" />
+
+            {/* Center Glass Card with Icon */}
+            <div className="relative z-10 w-28 h-28 sm:w-32 sm:h-32 rounded-xl border border-[#ab1f09]/60 bg-black/80 backdrop-blur-md flex items-center justify-center shadow-2xl shadow-[#ab1f09]/40">
+              {currentStep.icon}
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
   );
 }
 export function CapabilitiesSection() {
