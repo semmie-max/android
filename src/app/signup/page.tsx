@@ -105,16 +105,16 @@ export default function SignupPage() {
             <div className="relative z-10">
               <span className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-neutral-900/90 border border-neutral-800 text-[11px] font-mono tracking-wider text-[#fff7d3]">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#ab1f09]" />
-                INFRASTRUCTURE V2.0
+                RACK SYSTEM
               </span>
             </div>
 
             <div className="relative z-10 space-y-6 my-auto py-12">
               <h1 className="text-4xl xl:text-5xl font-semibold tracking-tight leading-tight text-white">
-                Powering modern events with <span className="text-[#fff7d3] underline decoration-[#ab1f09]/60 underline-offset-8">precision</span>.
+                Build your first <span className="text-[#fff7d3] underline decoration-[#ab1f09]/60 underline-offset-8">Rack</span>.
               </h1>
               <p className="text-neutral-400 text-sm xl:text-base leading-relaxed max-w-lg font-light">
-                Access your dashboard to manage ticketing, analyze automated response insights, and scale your audience seamlessly.
+                Set up your Rack account and get access to the tools designed to help you create, manage, and grow your projects.
               </p>
             </div>
 

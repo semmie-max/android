@@ -100,21 +100,15 @@ export default function SigninPage() {
 
             <div className="relative z-10 space-y-6 my-auto py-12">
               <h1 className="text-4xl xl:text-5xl font-semibold tracking-tight leading-tight text-white">
-                Welcome back to your <span className="text-[#fff7d3] underline decoration-[#ab1f09]/60 underline-offset-8">workspace</span>.
+                Back to <span className="text-[#fff7d3] underline decoration-[#ab1f09]/60 underline-offset-8">Rack</span>.
               </h1>
               <p className="text-neutral-400 text-sm xl:text-base leading-relaxed max-w-lg font-light">
-                Sign in to access your event dashboards, monitor real-time audience analytics, and manage active Racks.
+               Back to where ideas take shape. Continue building, collaborating, and creating with Rack.
               </p>
             </div>
 
             <div className="relative z-10 border-t border-neutral-800/80 pt-6 flex items-center justify-between text-xs font-mono text-neutral-500">
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                <span>GATEWAY: <span className="text-neutral-200">ACTIVE</span></span>
-              </div>
-              <div>
-                <span>ENCRYPTION: <span className="text-[#ab1f09]">256-BIT</span></span>
-              </div>
+              <span>© 2023 Rack. All rights reserved.</span>
             </div>
           </div>
 
