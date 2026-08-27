@@ -49,8 +49,8 @@ export default function SignupPage() {
         localStorage.setItem("rack_token", data.token);
       }
 
-      // Redirect to login or home dashboard on success
-      router.push("/login?registered=true");
+      // 🚀 Redirect to Dashboard on success
+      router.push("/dashboard");
     } catch (err: any) {
       setError(err.message || "Network error. Please try again.");
     } finally {
