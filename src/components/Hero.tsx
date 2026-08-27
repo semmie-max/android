@@ -504,7 +504,7 @@ export function StepProcessSection() {
     },
     process: {
       stepLabel: "Step: 2",
-      title: "AI processes everything",
+      title: "Share with your audience",
       description:
         "Send your form anywhere with a simple link and start collecting responses instantly.",
       number: "02",
