@@ -366,7 +366,7 @@ export function CapabilitiesSection() {
                 </div>
 
                 <div className="flex items-center gap-2 rounded-lg border border-dashed border-neutral-700 bg-neutral-900/60 p-2.5 text-xs text-neutral-400">
-                  <span>📤</span>
+                  <span></span>
                   <span>Add a question...</span>
                 </div>
 
