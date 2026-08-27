@@ -190,7 +190,7 @@ export function Hero() {
   );
 }
 export function Footer() {
-  const brandName = "Notrix";
+  const brandName = "Rack...";
   const [displayText, setDisplayText] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -231,18 +231,18 @@ export function Footer() {
   ];
 
   return (
-    <footer className="w-full bg-[#121212] text-white overflow-hidden pt-12 sm:pt-16 pb-0 px-6 sm:px-12 md:px-16 font-sans border-t border-neutral-800">
+    <footer className="w-full bg-black text-white overflow-hidden pt-12 sm:pt-16 pb-0 px-6 sm:px-12 md:px-16 font-sans border-t border-neutral-800">
       <div className="max-w-6xl mx-auto flex flex-col justify-between min-h-[340px]">
         {/* Main Content Layout */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 mb-16">
           {/* Brand & Typewriter Column */}
           <div className="md:col-span-6 space-y-4">
-            <h2 className="text-xl font-semibold tracking-tight min-h-[32px] flex items-center">
+            <h2 className="text-xl font-semibold tracking-tight text-[#fff7d3] min-h-[32px] flex items-center">
               <span>{displayText}</span>
-              <span className="inline-block w-[2px] h-5 bg-white ml-0.5 animate-pulse" />
+              <span className="inline-block w-[2px] h-5 bg-[#ab1f09] ml-0.5 animate-pulse" />
             </h2>
             <p className="text-xs text-neutral-400 max-w-xs leading-relaxed">
-              AI agents for modern<br />email workflow
+              A modern approach to forms,<br> built to make collecting information simpler and more effective.</br>
             </p>
 
             {/* Social Icons */}
@@ -283,21 +283,10 @@ export function Footer() {
                 <li><a href="#" className="hover:text-white transition-colors">Home</a></li>
                 <li><a href="#" className="hover:text-white transition-colors">About</a></li>
                 <li><a href="#" className="hover:text-white transition-colors">Features</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Pricing</a></li>
               </ul>
             </div>
 
-            {/* Other */}
-            <div className="space-y-3">
-              <h3 className="text-white font-medium text-xs mb-4">Other</h3>
-              <ul className="space-y-2.5 text-neutral-400">
-                <li><a href="#" className="hover:text-white transition-colors">Automation</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Product Overview</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Documentation</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Integration</a></li>
-              </ul>
-            </div>
-
+            
             {/* Legal */}
             <div className="space-y-3">
               <h3 className="text-white font-medium text-xs mb-4">Legal</h3>
@@ -318,7 +307,7 @@ export function Footer() {
                 <span
                   key={cellIndex}
                   className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full transition-opacity ${
-                    cell === 1 ? "bg-white opacity-90" : "bg-transparent opacity-0"
+                    cell === 1 ? "bg-[#fff7d3] opacity-90" : "bg-transparent opacity-0"
                   }`}
                 />
               ))}
