@@ -3,6 +3,23 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import {
+  FiGrid,
+  FiBox,
+  FiBarChart2,
+  FiUsers,
+  FiSettings,
+  FiBell,
+  FiShield,
+  FiMenu,
+  FiX,
+  FiLogOut,
+  FiSearch,
+  FiMoreHorizontal,
+  FiTrendingUp,
+  FiZoomIn,
+  FiZoomOut,
+} from "react-icons/fi";
 
 interface Candidate {
   id: string;
@@ -64,8 +81,9 @@ export default function RackDashboard() {
   // Forms & Analytics State
   const [forms, setForms] = useState<RackForm[]>([]);
   const [selectedFormForAnalytics, setSelectedFormForAnalytics] = useState<RackForm | null>(null);
-  const [rackFilter, setRackFilter] = useState<"all" | "published" | "draft">("all");
+    const [rackFilter, setRackFilter] = useState<"all" | "published" | "draft">("all");
   const [rackSearch, setRackSearch] = useState("");
+  const [timeFilter, setTimeFilter] = useState("Last month");
 
   // Members Modal State
   const [showMembersModal, setShowMembersModal] = useState(false);
@@ -182,11 +200,11 @@ export default function RackDashboard() {
           </span>
         </div>
 
-        <button
+                <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           className="p-2 text-neutral-400 hover:text-[#fff7d3] focus:outline-none cursor-pointer"
         >
-          {mobileMenuOpen ? "✕" : "☰"}
+          {mobileMenuOpen ? <FiX className="w-6 h-6" /> : <FiMenu className="w-6 h-6" />}
         </button>
       </header>
 
@@ -217,10 +235,10 @@ export default function RackDashboard() {
               <div className="px-3 py-1.5 text-[10px] font-mono tracking-widest text-neutral-500 uppercase">
                 Main Menu
               </div>
-              {[
-                { id: "overview", label: "Dashboard", icon: "⬡" },
-                { id: "racks", label: "My Racks", icon: "❖" },
-                { id: "analytics", label: "Analytics", icon: "∿" },
+                            {[
+                { id: "overview", label: "Dashboard", icon: FiGrid },
+                { id: "racks", label: "My Racks", icon: FiBox },
+                { id: "analytics", label: "Analytics", icon: FiBarChart2 },
               ].map((item) => (
                 <button
                   key={item.id}
@@ -234,7 +252,7 @@ export default function RackDashboard() {
                       : "text-neutral-400 hover:text-white hover:bg-neutral-900/60"
                   }`}
                 >
-                  <span className="text-sm text-[#ab1f09]">{item.icon}</span>
+                  <item.icon className={`w-4 h-4 ${activeTab === item.id ? "text-[#fff7d3]" : "text-[#ab1f09]"}`} />
                   <span>{item.label}</span>
                 </button>
               ))}
@@ -245,11 +263,11 @@ export default function RackDashboard() {
               <div className="px-3 py-1.5 text-[10px] font-mono tracking-widest text-neutral-500 uppercase">
                 Account Settings
               </div>
-              {[
-                { id: "profile", label: "Profile" },
-                { id: "settings", label: "Settings" },
-                { id: "notifications", label: "Notifications" },
-                { id: "security", label: "Security" },
+                            {[
+                { id: "profile", label: "Profile", icon: FiUsers },
+                { id: "settings", label: "Settings", icon: FiSettings },
+                { id: "notifications", label: "Notifications", icon: FiBell },
+                { id: "security", label: "Security", icon: FiShield },
               ].map((item) => (
                 <button
                   key={item.id}
@@ -257,13 +275,14 @@ export default function RackDashboard() {
                     setActiveTab(item.id as any);
                     setMobileMenuOpen(false);
                   }}
-                  className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-mono transition-all duration-200 flex items-center justify-between cursor-pointer ${
+                  className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-mono transition-all duration-200 flex items-center gap-3 cursor-pointer ${
                     activeTab === item.id
                       ? "bg-[#ab1f09]/15 text-[#fff7d3] border border-[#ab1f09]/30 font-medium shadow-sm shadow-[#ab1f09]/20"
                       : "text-neutral-400 hover:text-white hover:bg-neutral-900/60"
                   }`}
                 >
-                  <span>{item.label}</span>
+                  <item.icon className={`w-4 h-4 ${activeTab === item.id ? "text-[#fff7d3]" : "text-neutral-400"}`} />
+                  <span className="flex-1">{item.label}</span>
                   {activeTab === item.id && (
                     <span className="w-1.5 h-1.5 rounded-full bg-[#ab1f09]" />
                   )}
@@ -287,12 +306,12 @@ export default function RackDashboard() {
               <p className="text-[10px] font-mono text-neutral-500 truncate">{userEmail}</p>
             </div>
           </div>
-          <button 
+                    <button 
             onClick={handleLogout}
             className="w-full text-left px-3 py-2 rounded-lg text-xs font-mono text-neutral-400 hover:text-[#fff7d3] hover:bg-neutral-900/80 transition-colors flex items-center justify-between cursor-pointer"
           >
             <span>LOGOUT</span>
-            <span>→</span>
+            <FiLogOut className="w-3.5 h-3.5" />
           </button>
         </div>
       </aside>
@@ -314,177 +333,271 @@ export default function RackDashboard() {
         {/* ========================================================= */}
         {/* TAB 1: OVERVIEW / DASHBOARD */}
         {/* ========================================================= */}
-        {activeTab === "overview" && (
-          <div className="space-y-10">
-            {/* Header Banner */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-800/60 pb-6">
-              <div className="space-y-1">
-                <span className="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-neutral-900 border border-neutral-800 text-[10px] font-mono tracking-wider text-[#fff7d3]">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#ab1f09]" />
-                  WORKSPACE OVERVIEW
-                </span>
-                <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-white capitalize">
-                  Welcome back, <span className="text-[#fff7d3]">{displayName}</span>
+                {activeTab === "overview" && (
+          <div className="space-y-8">
+            {/* TOP HEADER: Welcome Title & Search Bar */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-white capitalize">
+                  Good to see you, {displayName}!
                 </h1>
+                <p className="text-xs text-neutral-400 font-light mt-1">
+                  Improve your rack management for better growth
+                </p>
               </div>
-              <button 
-                onClick={() => router.push("/form")}
-                className="self-start sm:self-auto px-5 py-2.5 bg-[#ab1f09] hover:bg-[#c2240b] text-[#fff7d3] font-mono font-medium text-xs tracking-wider uppercase rounded-xl transition-all shadow-lg shadow-[#ab1f09]/20 cursor-pointer"
-              >
-                + NEW RACK
-              </button>
-            </div>
 
-            {/* Quick Actions */}
-            <div className="space-y-4">
-              <h2 className="text-xs font-mono tracking-widest text-neutral-400 uppercase">Quick Actions</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                
-                {/* 1. Create New */}
-                <button 
-                  onClick={() => router.push("/form")}
-                  className="p-5 border border-neutral-800/80 rounded-2xl bg-[#0d0d0d]/80 hover:bg-neutral-900/60 hover:border-[#ab1f09]/50 transition-all text-left space-y-3 group cursor-pointer"
-                >
-                  <div className="w-8 h-8 rounded-xl bg-[#ab1f09]/15 border border-[#ab1f09]/30 flex items-center justify-center text-[#ab1f09] group-hover:bg-[#ab1f09] group-hover:text-[#fff7d3] transition-all">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="text-xs font-semibold text-white group-hover:text-[#fff7d3]">Create New Rack</h3>
-                    <p className="text-[11px] text-neutral-500 font-light leading-snug mt-1">Start a form or voting ballot.</p>
-                  </div>
-                </button>
-
-                {/* 2. View Responses */}
-                <button 
-                  onClick={() => setActiveTab("analytics")}
-                  className="p-5 border border-neutral-800/80 rounded-2xl bg-[#0d0d0d]/80 hover:bg-neutral-900/60 hover:border-[#ab1f09]/50 transition-all text-left space-y-3 group cursor-pointer"
-                >
-                  <div className="w-8 h-8 rounded-xl bg-neutral-900 border border-neutral-800 flex items-center justify-center text-neutral-400 group-hover:text-[#fff7d3] transition-colors">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.75" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="text-xs font-semibold text-white group-hover:text-[#fff7d3]">View Responses</h3>
-                    <p className="text-[11px] text-neutral-500 font-light leading-snug mt-1">Check {totalSubmissions} submissions.</p>
-                  </div>
-                </button>
-
-                {/* 3. Manage Members */}
-                <button 
-                  onClick={() => setShowMembersModal(true)}
-                  className="p-5 border border-neutral-800/80 rounded-2xl bg-[#0d0d0d]/80 hover:bg-neutral-900/60 hover:border-[#ab1f09]/50 transition-all text-left space-y-3 group cursor-pointer"
-                >
-                  <div className="w-8 h-8 rounded-xl bg-neutral-900 border border-neutral-800 flex items-center justify-center text-neutral-400 group-hover:text-[#fff7d3] transition-colors">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.75" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="text-xs font-semibold text-white group-hover:text-[#fff7d3]">Manage Members</h3>
-                    <p className="text-[11px] text-neutral-500 font-light leading-snug mt-1">{members.length} Active members.</p>
-                  </div>
-                </button>
-
-                {/* 4. Analytics */}
-                <button 
-                  onClick={() => setActiveTab("analytics")}
-                  className="p-5 border border-neutral-800/80 rounded-2xl bg-[#0d0d0d]/80 hover:bg-neutral-900/60 hover:border-[#ab1f09]/50 transition-all text-left space-y-3 group cursor-pointer"
-                >
-                  <div className="w-8 h-8 rounded-xl bg-neutral-900 border border-neutral-800 flex items-center justify-center text-neutral-400 group-hover:text-[#fff7d3] transition-colors">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.75" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="text-xs font-semibold text-white group-hover:text-[#fff7d3]">Analytics</h3>
-                    <p className="text-[11px] text-neutral-500 font-light leading-snug mt-1">${totalRevenue.toFixed(2)} Revenue tracked.</p>
-                  </div>
-                </button>
-
-              </div>
-            </div>
-
-            {/* Racks Grid */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xs font-mono tracking-widest text-neutral-400 uppercase">Your Racks</h2>
+              <div className="flex items-center gap-3 w-full sm:w-auto">
+                <div className="relative flex-1 sm:w-72">
+                  <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-500 w-4 h-4" />
+                  <input
+                    type="text"
+                    value={rackSearch}
+                    onChange={(e) => setRackSearch(e.target.value)}
+                    placeholder="Search racks..."
+                    className="w-full pl-10 pr-4 py-2.5 bg-[#0a0a0a] border border-neutral-800 rounded-xl text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-[#ab1f09] transition-colors"
+                  />
+                </div>
                 <button
-                  onClick={() => setActiveTab("racks")}
-                  className="text-xs font-mono text-[#ab1f09] hover:underline cursor-pointer"
+                  onClick={() => router.push("/form")}
+                  className="px-4 py-2.5 bg-[#ab1f09] hover:bg-[#c2240b] text-[#fff7d3] font-mono font-medium text-xs tracking-wider uppercase rounded-xl transition-all shadow-lg shadow-[#ab1f09]/20 cursor-pointer whitespace-nowrap"
                 >
-                  View All ({forms.length}) →
+                  + New Rack
+                </button>
+              </div>
+            </div>
+
+            {/* TIME RANGE TAB FILTERS */}
+            <div className="flex items-center gap-6 border-b border-neutral-800/80 pb-3 text-xs font-mono overflow-x-auto">
+              {["Last 24 hour", "Last weeks", "Last month", "Last year"].map((filter) => (
+                <button
+                  key={filter}
+                  onClick={() => setTimeFilter(filter)}
+                  className={`pb-3 -mb-3 transition-colors relative whitespace-nowrap ${
+                    timeFilter === filter
+                      ? "text-[#fff7d3] font-semibold"
+                      : "text-neutral-500 hover:text-neutral-300"
+                  }`}
+                >
+                  {filter}
+                  {timeFilter === filter && (
+                    <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#ab1f09] rounded-full" />
+                  )}
+                </button>
+              ))}
+            </div>
+
+            {/* TOP METRIC CARDS GRID */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+
+              <div className="p-5 border border-neutral-800/80 rounded-2xl bg-[#0a0a0a] flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-11 h-11 rounded-xl bg-[#ab1f09]/20 border border-[#ab1f09]/30 flex items-center justify-center text-[#ab1f09]">
+                    <FiUsers className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="text-[11px] font-mono text-neutral-400 uppercase">Workspace Members</p>
+                    <div className="flex items-baseline gap-2 mt-0.5">
+                      <span className="text-2xl font-bold text-white tracking-tight">{members.length}</span>
+                    </div>
+                  </div>
+                </div>
+                <button className="text-neutral-600 hover:text-neutral-400">
+                  <FiMoreHorizontal className="w-4 h-4" />
                 </button>
               </div>
 
-              {forms.length === 0 ? (
-                <div className="border border-dashed border-neutral-800/90 rounded-2xl p-10 text-center bg-[#0d0d0d]/40 backdrop-blur-xl flex flex-col items-center justify-center space-y-4">
-                  <div className="w-12 h-12 rounded-2xl bg-neutral-900 border border-neutral-800 flex items-center justify-center text-[#ab1f09] font-mono text-xl">
-                    ❖
+              <div className="p-5 border border-neutral-800/80 rounded-2xl bg-[#0a0a0a] flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-11 h-11 rounded-xl bg-[#ab1f09]/20 border border-[#ab1f09]/30 flex items-center justify-center text-[#fff7d3]">
+                    <FiTrendingUp className="w-5 h-5" />
                   </div>
-                  <div className="space-y-1 max-w-md">
-                    <h3 className="text-base font-medium text-white">No active racks created yet</h3>
-                    <p className="text-xs text-neutral-500 font-light leading-relaxed">
-                      Create your first Rack to start building forms and collecting responses.
-                    </p>
+                  <div>
+                    <p className="text-[11px] font-mono text-neutral-400 uppercase">Paid Voting Revenue</p>
+                    <div className="flex items-baseline gap-2 mt-0.5">
+                      <span className="text-2xl font-bold text-white tracking-tight">${totalRevenue.toFixed(2)}</span>
+                    </div>
                   </div>
-                  <button 
-                    onClick={() => router.push("/form")}
-                    className="px-5 py-2.5 bg-[#fff7d3] hover:bg-white text-black font-mono font-medium text-xs tracking-wider uppercase rounded-xl transition-all shadow-md mt-2 cursor-pointer"
+                </div>
+                <button className="text-neutral-600 hover:text-neutral-400">
+                  <FiMoreHorizontal className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="p-5 border border-neutral-800/80 rounded-2xl bg-[#0a0a0a] flex items-center justify-between sm:col-span-2 lg:col-span-1">
+                <div className="flex items-center gap-4">
+                  <div className="w-11 h-11 rounded-xl bg-neutral-900 border border-neutral-800 flex items-center justify-center text-neutral-300">
+                    <FiBox className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="text-[11px] font-mono text-neutral-400 uppercase">Total Racks</p>
+                    <div className="flex items-baseline gap-2 mt-0.5">
+                      <span className="text-2xl font-bold text-white tracking-tight">{forms.length}</span>
+                    </div>
+                  </div>
+                </div>
+                <button className="text-neutral-600 hover:text-neutral-400">
+                  <FiMoreHorizontal className="w-4 h-4" />
+                </button>
+              </div>
+
+            </div>
+
+            {/* MIDDLE ANALYTICS SECTION */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+              <div className="lg:col-span-7 border border-neutral-800/80 rounded-2xl bg-[#0a0a0a] p-6 space-y-6 flex flex-col justify-between">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-base font-semibold text-white">Submissions Overview</h3>
+                    <p className="text-xs text-neutral-500 font-light">Your rack submissions this week</p>
+                  </div>
+                  <button
+                    onClick={() => setActiveTab("analytics")}
+                    className="text-xs font-mono text-[#ab1f09] hover:text-[#fff7d3] transition-colors cursor-pointer"
                   >
-                    + Create First Rack
+                    View Details
                   </button>
                 </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {forms.slice(0, 6).map((form) => (
-                    <div
-                      key={form.id}
-                      onClick={() => router.push(`/form?id=${form.id}`)}
-                      className="p-6 border border-neutral-800/80 rounded-2xl bg-[#0d0d0d]/90 hover:border-neutral-700 transition-all cursor-pointer flex flex-col justify-between group space-y-4 relative"
-                    >
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span
-                            className={`text-[9px] font-mono px-2 py-0.5 rounded uppercase font-bold tracking-wider ${
-                              form.status === "published"
-                                ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
-                                : "bg-amber-500/15 text-amber-400 border border-amber-500/30"
-                            }`}
-                          >
-                            {form.status === "published" ? "● LIVE" : "⏳ DRAFT"}
-                          </span>
-                          <button
-                            onClick={(e) => handleDeleteForm(form.id, e)}
-                            className="text-neutral-500 hover:text-red-400 p-1 transition-colors text-xs cursor-pointer"
-                          >
-                            ✕
-                          </button>
-                        </div>
-                        <h3 className="text-sm font-semibold text-white group-hover:text-[#fff7d3] transition-colors truncate">
-                          {form.title}
-                        </h3>
-                        <p className="text-[11px] text-neutral-400 font-light line-clamp-2">
-                          {form.description || "No description provided."}
-                        </p>
-                      </div>
 
-                      <div className="pt-3 border-t border-neutral-800/80 flex items-center justify-between text-[10px] font-mono text-neutral-500">
-                        <span>{form.responses?.length || 0} Submissions</span>
-                        <span className="text-[#ab1f09] group-hover:underline">Edit Rack →</span>
+                <div className="space-y-2 pt-4">
+                  <div className="h-48 w-full flex items-end justify-between gap-2 sm:gap-4 px-2 border-b border-neutral-800 pb-2">
+                    {[
+                      { day: "Mon", h1: "60%", h2: "45%" },
+                      { day: "Tue", h1: "50%", h2: "30%" },
+                      { day: "Wed", h1: "65%", h2: "50%" },
+                      { day: "Thu", h1: "95%", h2: "70%" },
+                      { day: "Fri", h1: "55%", h2: "40%" },
+                      { day: "Sat", h1: "80%", h2: "60%" },
+                      { day: "Sun", h1: "70%", h2: "50%" },
+                    ].map((bar, idx) => (
+                      <div key={idx} className="flex-1 flex items-end justify-center gap-1 h-full">
+                        <div
+                          style={{ height: bar.h1 }}
+                          className="w-full bg-[#ab1f09] rounded-t-md transition-all hover:bg-[#c2240b]"
+                        />
+                        <div
+                          style={{ height: bar.h2 }}
+                          className="w-full bg-[#ab1f09]/40 rounded-t-md transition-all hover:bg-[#ab1f09]/60"
+                        />
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
+
+                  <div className="flex justify-between text-[11px] font-mono text-neutral-500 px-2 pt-2">
+                    <span>Mon</span>
+                    <span>Tue</span>
+                    <span>Wed</span>
+                    <span>Thu</span>
+                    <span>Fri</span>
+                    <span>Sat</span>
+                    <span>Sun</span>
+                  </div>
                 </div>
-              )}
+              </div>
+
+              <div className="lg:col-span-5 border border-neutral-800/80 rounded-2xl bg-[#0a0a0a] p-6 space-y-4 relative flex flex-col justify-between overflow-hidden">
+                <div>
+                  <h3 className="text-base font-semibold text-white">Vote Distribution</h3>
+                  <p className="text-xs text-neutral-500 font-light">Contestant activity this week</p>
+                </div>
+
+                <div className="relative my-auto flex items-center justify-center min-h-[200px]">
+                  <svg
+                    viewBox="0 0 1000 500"
+                    className="w-full h-auto text-neutral-800 fill-current"
+                  >
+                    <path d="M150,120 Q180,80 280,100 T300,220 T200,280 T100,200 Z" opacity="0.4" />
+                    <path d="M250,300 Q320,320 300,450 T220,420 T230,320 Z" opacity="0.4" />
+                    <path d="M480,100 Q550,80 580,160 T480,200 Z" opacity="0.4" />
+                    <path d="M460,220 Q560,200 580,320 T440,300 Z" opacity="0.4" />
+                    <path d="M600,100 Q800,70 880,180 T750,280 T600,200 Z" opacity="0.4" />
+                    <path d="M800,340 Q880,330 890,420 T800,410 Z" opacity="0.4" />
+
+                    <path d="M520,180 L560,170 L570,210 L530,220 Z" fill="#ab1f09" className="animate-pulse" />
+                    <path d="M680,210 L740,200 L730,250 L670,240 Z" fill="#ab1f09" />
+                    <path d="M780,280 L840,270 L850,310 L790,320 Z" fill="#fff7d3" />
+                  </svg>
+
+                  <div className="absolute bottom-2 left-2 flex flex-col gap-1">
+                    <button className="p-1.5 bg-neutral-900 border border-neutral-800 rounded-lg text-neutral-400 hover:text-white">
+                      <FiZoomIn className="w-3.5 h-3.5" />
+                    </button>
+                    <button className="p-1.5 bg-neutral-900 border border-neutral-800 rounded-lg text-neutral-400 hover:text-white">
+                      <FiZoomOut className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between text-xs font-mono pt-2 border-t border-neutral-800/80 text-neutral-400">
+                  <span className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-[#ab1f09]" /> Active Regional Growth
+                  </span>
+                  <span className="text-[#fff7d3]">{totalSubmissions} Submissions</span>
+                </div>
+              </div>
+
             </div>
+
+            {/* BOTTOM SECTION: RECENT RACKS TABLE */}
+            <div className="border border-neutral-800/80 rounded-2xl bg-[#0a0a0a] p-6 space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-base font-semibold text-white">Recent Racks</h3>
+                <button
+                  onClick={() => setActiveTab("racks")}
+                  className="text-xs font-mono text-[#ab1f09] hover:text-[#fff7d3] transition-colors cursor-pointer"
+                >
+                  View All
+                </button>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs font-mono">
+                  <thead>
+                    <tr className="text-neutral-500 border-b border-neutral-800/80">
+                      <th className="pb-3 font-normal">RACK</th>
+                      <th className="pb-3 font-normal">DESCRIPTION</th>
+                      <th className="pb-3 font-normal">UPDATED</th>
+                      <th className="pb-3 font-normal">SUBMISSIONS</th>
+                      <th className="pb-3 font-normal">STATUS</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-neutral-800/50 text-neutral-300">
+                    {filteredForms.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="py-6 text-center text-neutral-500">
+                          No racks match your search yet.
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredForms.slice(0, 6).map((form) => (
+                        <tr
+                          key={form.id}
+                          onClick={() => router.push(`/form?id=${form.id}`)}
+                          className="hover:bg-neutral-900/40 transition-colors cursor-pointer"
+                        >
+                          <td className="py-3 text-[#fff7d3]">{form.title}</td>
+                          <td className="py-3 text-neutral-400 max-w-[220px] truncate">{form.description || "No description"}</td>
+                          <td className="py-3 text-neutral-500">{form.updatedAt}</td>
+                          <td className="py-3 font-semibold text-white">{form.responses?.length || 0}</td>
+                          <td className="py-3">
+                            <span className={`px-2 py-0.5 rounded text-[10px] ${
+                              form.status === "published"
+                                ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                                : "bg-amber-500/10 text-amber-400 border border-amber-500/20"
+                            }`}>
+                              {form.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
           </div>
         )}
-
-        {/* ========================================================= */}
-        {/* TAB 2: MY RACKS (FULL LIST & FILTERS) */}
         {/* ========================================================= */}
         {activeTab === "racks" && (
           <div className="space-y-6">
