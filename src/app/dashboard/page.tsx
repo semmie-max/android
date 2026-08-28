@@ -17,9 +17,8 @@ import {
   FiSearch,
   FiMoreHorizontal,
   FiTrendingUp,
-  FiZoomIn,
-  FiZoomOut,
 } from "react-icons/fi";
+import GlobeStudy from "@/components/originkit/ui/globe-study";
 
 interface Candidate {
   id: string;
@@ -42,6 +41,8 @@ interface FormResponseItem {
   votedCandidate?: string;
   voteCount?: number;
   totalPaid?: number;
+  lat?: number;
+  lon?: number;
 }
 
 interface RackForm {
@@ -178,6 +179,15 @@ export default function RackDashboard() {
     const rev = f.responses?.reduce((rAcc, r) => rAcc + (r.totalPaid || 0), 0) || 0;
     return acc + rev;
   }, 0);
+
+  // Link Reach: every response across every rack that carries a location, fed
+  // straight into the globe. Nothing here yet since responses have no lat/lon
+  // until submissions start capturing it.
+  const linkLocations = forms.flatMap((f) =>
+    (f.responses || [])
+      .filter((r) => typeof r.lat === "number" && typeof r.lon === "number")
+      .map((r) => ({ lat: r.lat as number, lon: r.lon as number }))
+  );
 
   // Filtered Racks
   const filteredForms = forms.filter((f) => {
@@ -339,7 +349,7 @@ export default function RackDashboard() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-white capitalize">
-                  Good to see you, {displayName}!
+                  Heyyyy, {displayName}!
                 </h1>
                 <p className="text-xs text-neutral-400 font-light mt-1">
                   Improve your rack management for better growth
@@ -495,44 +505,27 @@ export default function RackDashboard() {
                 </div>
               </div>
 
-              <div className="lg:col-span-5 border border-neutral-800/80 rounded-2xl bg-[#0a0a0a] p-6 space-y-4 relative flex flex-col justify-between overflow-hidden">
+                            <div className="lg:col-span-5 border border-neutral-800/80 rounded-2xl bg-[#0a0a0a] p-6 space-y-4 relative flex flex-col justify-between overflow-hidden">
                 <div>
-                  <h3 className="text-base font-semibold text-white">Vote Distribution</h3>
-                  <p className="text-xs text-neutral-500 font-light">Contestant activity this week</p>
+                  <h3 className="text-base font-semibold text-white">Link Reach</h3>
+                  <p className="text-xs text-neutral-500 font-light">Where your rack links have been opened</p>
                 </div>
 
-                <div className="relative my-auto flex items-center justify-center min-h-[200px]">
-                  <svg
-                    viewBox="0 0 1000 500"
-                    className="w-full h-auto text-neutral-800 fill-current"
-                  >
-                    <path d="M150,120 Q180,80 280,100 T300,220 T200,280 T100,200 Z" opacity="0.4" />
-                    <path d="M250,300 Q320,320 300,450 T220,420 T230,320 Z" opacity="0.4" />
-                    <path d="M480,100 Q550,80 580,160 T480,200 Z" opacity="0.4" />
-                    <path d="M460,220 Q560,200 580,320 T440,300 Z" opacity="0.4" />
-                    <path d="M600,100 Q800,70 880,180 T750,280 T600,200 Z" opacity="0.4" />
-                    <path d="M800,340 Q880,330 890,420 T800,410 Z" opacity="0.4" />
-
-                    <path d="M520,180 L560,170 L570,210 L530,220 Z" fill="#ab1f09" className="animate-pulse" />
-                    <path d="M680,210 L740,200 L730,250 L670,240 Z" fill="#ab1f09" />
-                    <path d="M780,280 L840,270 L850,310 L790,320 Z" fill="#fff7d3" />
-                  </svg>
-
-                  <div className="absolute bottom-2 left-2 flex flex-col gap-1">
-                    <button className="p-1.5 bg-neutral-900 border border-neutral-800 rounded-lg text-neutral-400 hover:text-white">
-                      <FiZoomIn className="w-3.5 h-3.5" />
-                    </button>
-                    <button className="p-1.5 bg-neutral-900 border border-neutral-800 rounded-lg text-neutral-400 hover:text-white">
-                      <FiZoomOut className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
+                <div className="relative my-auto min-h-[220px] rounded-xl overflow-hidden">
+                  <GlobeStudy
+                    background="#0a0a0a"
+                    baseColor="#3f3f46"
+                    pinColor="#ab1f09"
+                    locations={linkLocations}
+                    style={{ minWidth: 0, minHeight: 0 }}
+                  />
                 </div>
 
                 <div className="flex items-center justify-between text-xs font-mono pt-2 border-t border-neutral-800/80 text-neutral-400">
                   <span className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-[#ab1f09]" /> Active Regional Growth
+                    <span className="w-2 h-2 rounded-full bg-[#ab1f09]" /> Locations reached
                   </span>
-                  <span className="text-[#fff7d3]">{totalSubmissions} Submissions</span>
+                  <span className="text-[#fff7d3]">{linkLocations.length} of {totalSubmissions} submissions</span>
                 </div>
               </div>
 
