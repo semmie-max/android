@@ -140,6 +140,8 @@ interface Props {
     hover?: number
     globe?: GlobeGroup
     pointer?: PointerGroup
+    locations?: { lat: number; lon: number }[]
+    pinColor?: string
 }
 
 export default function GlobeStudy(props: Props) {
@@ -156,6 +158,8 @@ export default function GlobeStudy(props: Props) {
         pointer,
         width,
         height,
+        locations = [],
+        pinColor = "#ff7a1a",
     } = props
 
     // A group the designer never opened arrives undefined; spread-merging over a
@@ -178,6 +182,14 @@ export default function GlobeStudy(props: Props) {
         moved: 0,
         click: 0,
     })
+
+    // Locations arrive from outside (an API call, form data) and can change after
+    // mount, so they live in a ref the render loop reads every frame, same as the
+    // other live controls below.
+    const locRef = useRef<{ lat: number; lon: number }[]>([])
+    locRef.current = locations
+    const pinColorRef = useRef(pinColor)
+    pinColorRef.current = pinColor
 
     // Every live input is read from a ref inside the loop. Putting any of them in
     // the effect deps would restart the loop on every colour tweak.
@@ -251,6 +263,8 @@ export default function GlobeStudy(props: Props) {
         }
 
         const pins: { lat: number; lon: number; t: number }[] = []
+        const dataPins: { lat: number; lon: number }[] = []
+        let dataPinsKey = ""
         const view = { cx: 0, cy: 0, R: 1, cs: 1, sn: 0, ct: 1, st: 0 }
 
         // screen point -> the lat/lon it is sitting on, or null if it missed the globe
@@ -303,6 +317,16 @@ export default function GlobeStudy(props: Props) {
 
             const key = (v.density as number) + "|" + (v.letters as number) + "|" + (v.phrase as string)
             if (key !== builtKey) build(v.density as number, v.letters as number, v.phrase as string)
+
+            const locs = locRef.current
+            const locKey = locs.length + ":" + locs.map((p) => p.lat.toFixed(2) + "," + p.lon.toFixed(2)).join("|")
+            if (locKey !== dataPinsKey) {
+                dataPins.length = 0
+                for (let li = 0; li < locs.length; li++) {
+                    dataPins.push({ lat: (locs[li].lat * Math.PI) / 180, lon: (locs[li].lon * Math.PI) / 180 })
+                }
+                dataPinsKey = locKey
+            }
 
             const u = Math.min(cw, ch)
             const ptr = ptrRef.current
@@ -490,6 +514,36 @@ export default function GlobeStudy(props: Props) {
                     ctx.lineWidth = Math.max(0.6, u * 0.0016)
                     ctx.stroke()
                 }
+            }
+
+            // data pins: real markers fed in from outside (where rack links were
+            // opened from), drawn in the accent colour so they read apart from the
+            // white click pins above
+            const pinRgb = parseRGB(pinColorRef.current, [255, 122, 26])
+            const pinTone = (a: number) =>
+                "rgba(" + pinRgb[0] + "," + pinRgb[1] + "," + pinRgb[2] + "," + clampN(a, 0, 1).toFixed(3) + ")"
+            for (let di = 0; di < dataPins.length; di++) {
+                const dp = dataPins[di]
+                const dcl = Math.cos(dp.lat)
+                const dax = dcl * Math.cos(dp.lon)
+                const day = Math.sin(dp.lat)
+                const daz = dcl * Math.sin(dp.lon)
+                const dbx1 = dax * cs - daz * sn
+                const dbz1 = dax * sn + daz * cs
+                const dby2 = day * ct - dbz1 * st
+                const dbz2 = day * st + dbz1 * ct
+                if (dbz2 <= 0.02) continue
+                const dpx = cx + dbx1 * R
+                const dpy = cy - dby2 * R
+                const drr = u * 0.014 * (0.55 + 0.45 * dbz2)
+                ctx.beginPath()
+                ctx.arc(dpx, dpy, drr * 1.9, 0, Math.PI * 2)
+                ctx.fillStyle = pinTone(0.18 + 0.22 * dbz2)
+                ctx.fill()
+                ctx.beginPath()
+                ctx.arc(dpx, dpy, drr, 0, Math.PI * 2)
+                ctx.fillStyle = pinTone(0.55 + 0.45 * dbz2)
+                ctx.fill()
             }
 
             raf = requestAnimationFrame(render)
