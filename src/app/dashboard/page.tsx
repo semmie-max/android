@@ -523,7 +523,7 @@ export default function RackDashboard() {
 
                 <div className="flex items-center justify-between text-xs font-mono pt-2 border-t border-neutral-800/80 text-neutral-400">
                   <span className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-[#ab1f09]" /> Locations reached
+                    <span className="w-2 h-2 rounded-full bg-[#ab1f09]" /> Link reach
                   </span>
                   <span className="text-[#fff7d3]">{linkLocations.length} of {totalSubmissions} submissions</span>
                 </div>
