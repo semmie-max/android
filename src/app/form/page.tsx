@@ -584,12 +584,13 @@ function FormBuilderSaaS() {
       {/* ------------------------------------------------------------- */}
       {/* 3-COLUMN WORKSPACE BODY */}
       {/* ------------------------------------------------------------- */}
-      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
+            <div className="flex-1 max-w-[1600px] w-full mx-auto p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 overflow-y-auto relative">
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-[#ab1f09]/10 blur-[140px] pointer-events-none rounded-full" />
         
         {/* ========================================================= */}
         {/* COLUMN 1: LEFT COMPONENT LIBRARY (WIDTH: 280px) */}
         {/* ========================================================= */}
-        <aside className="w-full lg:w-72 bg-[#0a0a0a] border-r border-neutral-800/80 p-5 flex flex-col gap-6 shrink-0 overflow-y-auto max-h-[calc(100vh-61px)]">
+                <aside className="lg:col-span-3 border border-neutral-800/80 rounded-2xl bg-[#0d0d0d]/80 backdrop-blur-xl p-5 flex flex-col gap-6 overflow-y-auto max-h-[calc(100vh-110px)]">
           
           {/* Top Pill Switch */}
           <div className="p-1 rounded-2xl bg-[#050505] border border-neutral-800 grid grid-cols-2 text-xs font-mono text-center">
@@ -758,7 +759,7 @@ function FormBuilderSaaS() {
         {/* ========================================================= */}
         {/* COLUMN 2: CENTER LIVE CANVAS */}
         {/* ========================================================= */}
-        <main className="flex-1 bg-[#050505] p-6 lg:p-10 overflow-y-auto max-h-[calc(100vh-61px)] space-y-6 flex flex-col items-center">
+                <main className="lg:col-span-6 overflow-y-auto max-h-[calc(100vh-110px)] space-y-6 flex flex-col items-center">
           
           <div className="w-full max-w-2xl space-y-5">
             
@@ -920,7 +921,7 @@ function FormBuilderSaaS() {
         {/* ========================================================= */}
         {/* COLUMN 3: RIGHT PROPERTIES & INSPECTOR PANEL */}
         {/* ========================================================= */}
-        <aside className="w-full lg:w-72 bg-[#0a0a0a] border-l border-neutral-800/80 p-5 flex flex-col justify-between shrink-0 overflow-y-auto max-h-[calc(100vh-61px)] space-y-6">
+                <aside className="lg:col-span-3 border border-neutral-800/80 rounded-2xl bg-[#0d0d0d]/80 backdrop-blur-xl p-5 flex flex-col justify-between overflow-y-auto max-h-[calc(100vh-110px)] space-y-6">
           
           <div className="space-y-6">
             
