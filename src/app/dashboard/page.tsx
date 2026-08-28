@@ -515,6 +515,7 @@ export default function RackDashboard() {
                   <GlobeStudy
                     background="#0a0a0a"
                     baseColor="#3f3f46"
+                    pinColor="#ab1f09"
                     locations={linkLocations}
                     style={{ minWidth: 0, minHeight: 0 }}
                   />
