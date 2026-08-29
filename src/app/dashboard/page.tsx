@@ -20,7 +20,7 @@ import {
 } from "react-icons/fi";
 import GlobeStudy from "@/components/originkit/ui/globe-study";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://rack-backend-fqdf.onrender.com";
 
 interface Candidate {
   id: string;
