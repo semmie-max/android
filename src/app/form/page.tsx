@@ -84,6 +84,8 @@ function FormBuilderSaaS() {
   const [selectedQuestionId, setSelectedQuestionId] = useState<string>("q_header");
   const [copiedLink, setCopiedLink] = useState(false);
   const [savedNotice, setSavedNotice] = useState(false);
+  const [formLoaded, setFormLoaded] = useState(false);
+  const [formNotFound, setFormNotFound] = useState(false);
 
   // Form State
   const [formId, setFormId] = useState<string>("");
@@ -146,6 +148,11 @@ function FormBuilderSaaS() {
         if (found.questions?.length > 0) {
           setSelectedQuestionId(found.questions[0].id);
         }
+        setFormLoaded(true);
+        return;
+      } else if (isLiveView) {
+        setFormNotFound(true);
+        setFormLoaded(true);
         return;
       }
     }
@@ -155,7 +162,8 @@ function FormBuilderSaaS() {
     setFormId(newId);
     setCreatedAt(dateStr);
     setUpdatedAt(new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }));
-  }, [formIdParam]);
+    setFormLoaded(true);
+  }, [formIdParam, isLiveView]);
 
   // 2. Auto-Save Draft to LocalStorage
   useEffect(() => {
@@ -334,7 +342,25 @@ function FormBuilderSaaS() {
         <div className="w-full max-w-2xl bg-[#0d0d0d] border border-neutral-800 rounded-3xl p-6 sm:p-10 shadow-2xl space-y-8 relative overflow-hidden">
           <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#ab1f09] via-[#fff7d3]/50 to-[#ab1f09]" />
 
-          {liveSubmitted ? (
+          {!formLoaded ? (
+            <div className="text-center py-16">
+              <p className="text-sm font-mono text-neutral-500">Loading form...</p>
+            </div>
+          ) : formNotFound ? (
+            <div className="text-center py-16 space-y-3">
+              <h2 className="text-xl font-bold text-white">Form Not Found</h2>
+              <p className="text-sm text-neutral-400 max-w-md mx-auto">
+                This link doesn't point to a form we can find on this device/browser.
+              </p>
+            </div>
+          ) : status !== "published" || !settings.acceptingResponses ? (
+            <div className="text-center py-16 space-y-3">
+              <h2 className="text-xl font-bold text-white">Not Accepting Responses</h2>
+              <p className="text-sm text-neutral-400 max-w-md mx-auto">
+                This rack is currently {status === "draft" ? "still in draft and hasn't been published yet" : "closed"}.
+              </p>
+            </div>
+          ) : liveSubmitted ? (
             <div className="text-center py-12 space-y-4">
               <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center mx-auto">
                 <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -582,8 +608,9 @@ function FormBuilderSaaS() {
       </header>
 
       {/* ------------------------------------------------------------- */}
-      {/* 3-COLUMN WORKSPACE BODY */}
+      {/* 3-COLUMN WORKSPACE BODY (BUILDER TAB) */}
       {/* ------------------------------------------------------------- */}
+      {topTab === "builder" && (
             <div className="flex-1 max-w-[1600px] w-full mx-auto p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 overflow-y-auto relative">
         <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-[#ab1f09]/10 blur-[140px] pointer-events-none rounded-full" />
         
@@ -1057,6 +1084,128 @@ function FormBuilderSaaS() {
         </aside>
 
       </div>
+      )}
+
+      {/* ------------------------------------------------------------- */}
+      {/* RESPONSES TAB */}
+      {/* ------------------------------------------------------------- */}
+      {topTab === "responses" && (
+        <div className="flex-1 max-w-5xl w-full mx-auto p-4 sm:p-6 space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-bold text-white">Responses ({responses.length})</h2>
+          </div>
+
+          {responses.length === 0 ? (
+            <div className="p-10 text-center rounded-2xl border border-neutral-800 bg-[#0d0d0d] text-sm text-neutral-500 font-mono">
+              No responses yet. Share your link to start collecting submissions.
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {responses.map((r) => (
+                <div key={r.id} className="p-4 rounded-2xl border border-neutral-800 bg-[#0d0d0d] flex items-center justify-between text-xs font-mono">
+                  <div className="space-y-1">
+                    <div className="text-white font-semibold">{r.email || "Anonymous"}</div>
+                    <div className="text-neutral-500">{r.submittedAt}</div>
+                    {r.votedCandidate && (
+                      <div className="text-[#fff7d3]">Voted: {r.votedCandidate} ({r.voteCount} votes)</div>
+                    )}
+                  </div>
+                  {r.totalPaid ? (
+                    <div className="text-[#ab1f09] font-bold">${r.totalPaid.toFixed(2)}</div>
+                  ) : null}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ------------------------------------------------------------- */}
+      {/* INTEGRATION TAB */}
+      {/* ------------------------------------------------------------- */}
+      {topTab === "integration" && (
+        <div className="flex-1 max-w-3xl w-full mx-auto p-4 sm:p-6 space-y-6">
+          <h2 className="text-xl font-bold text-white">Share &amp; Integrate</h2>
+          <div className="p-6 rounded-2xl border border-neutral-800 bg-[#0d0d0d] space-y-4">
+            <label className="block text-xs font-mono text-neutral-400 uppercase">Public Link</label>
+            <div className="flex items-center gap-2">
+              <input
+                readOnly
+                value={livePublicUrl}
+                className="flex-1 px-4 py-2.5 bg-[#050505] border border-neutral-800 rounded-xl text-xs text-neutral-300 font-mono outline-none"
+              />
+              <button
+                onClick={handleCopyLink}
+                className="px-4 py-2.5 bg-[#ab1f09] hover:bg-[#c2240b] text-[#fff7d3] text-xs font-mono font-semibold rounded-xl cursor-pointer whitespace-nowrap"
+              >
+                {copiedLink ? "Copied!" : "Copy Link"}
+              </button>
+            </div>
+            <p className="text-[11px] text-neutral-500 font-mono leading-relaxed">
+              Anyone with this link can view and submit this rack, as long as it's Published and Accepting Responses (set in Settings).
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* ------------------------------------------------------------- */}
+      {/* SETTINGS TAB */}
+      {/* ------------------------------------------------------------- */}
+      {topTab === "settings" && (
+        <div className="flex-1 max-w-3xl w-full mx-auto p-4 sm:p-6 space-y-6">
+          <h2 className="text-xl font-bold text-white">Rack Settings</h2>
+
+          <div className="p-6 rounded-2xl border border-neutral-800 bg-[#0d0d0d] space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="text-xs font-semibold text-white">Accepting Responses</h4>
+                <p className="text-[11px] text-neutral-500">Turn off to stop new submissions without deleting the rack</p>
+              </div>
+              <button
+                onClick={() => setSettings({ ...settings, acceptingResponses: !settings.acceptingResponses })}
+                className={`w-8 h-4.5 flex items-center rounded-full p-0.5 transition-colors cursor-pointer ${
+                  settings.acceptingResponses ? "bg-[#ab1f09]" : "bg-neutral-800"
+                }`}
+              >
+                <div
+                  className={`bg-white w-3.5 h-3.5 rounded-full shadow transform transition-transform ${
+                    settings.acceptingResponses ? "translate-x-3.5" : "translate-x-0"
+                  }`}
+                />
+              </button>
+            </div>
+
+            <div className="flex items-center justify-between border-t border-neutral-800 pt-4">
+              <div>
+                <h4 className="text-xs font-semibold text-white">Collect Email</h4>
+                <p className="text-[11px] text-neutral-500">Require respondents to enter their email</p>
+              </div>
+              <button
+                onClick={() => setSettings({ ...settings, collectEmail: !settings.collectEmail })}
+                className={`w-8 h-4.5 flex items-center rounded-full p-0.5 transition-colors cursor-pointer ${
+                  settings.collectEmail ? "bg-[#ab1f09]" : "bg-neutral-800"
+                }`}
+              >
+                <div
+                  className={`bg-white w-3.5 h-3.5 rounded-full shadow transform transition-transform ${
+                    settings.collectEmail ? "translate-x-3.5" : "translate-x-0"
+                  }`}
+                />
+              </button>
+            </div>
+
+            <div className="space-y-2 border-t border-neutral-800 pt-4">
+              <label className="block text-xs font-mono text-neutral-400 uppercase">Confirmation Message</label>
+              <textarea
+                value={settings.confirmationMessage}
+                onChange={(e) => setSettings({ ...settings, confirmationMessage: e.target.value })}
+                rows={3}
+                className="w-full px-4 py-2.5 bg-[#050505] border border-neutral-800 rounded-xl text-xs text-white focus:border-[#ab1f09] outline-none resize-none"
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
