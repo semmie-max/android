@@ -390,7 +390,7 @@ function FormBuilderSaaS() {
     }
   };
 
-  const livePublicUrl = typeof window !== "undefined" ? `${window.location.origin}/form?id=${formId}&view=live` : "";
+  const livePublicUrl = typeof window !== "undefined" ? `${window.location.origin}/android/form?id=${formId}&view=live` : "";
 
   const handleCopyLink = () => {
     if (navigator.clipboard) {

@@ -202,7 +202,7 @@ const [isResizing, setIsResizing] = useState(false);
   // Copy a rack's live share link
   const handleCopyShareLink = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    const url = `${window.location.origin}/form?id=${id}&view=live`;
+    const url = `${window.location.origin}/android/form?id=${id}&view=live`;
     navigator.clipboard.writeText(url);
     setCopiedFormId(id);
     setTimeout(() => setCopiedFormId(null), 2000);
