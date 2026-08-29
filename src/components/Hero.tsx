@@ -216,10 +216,10 @@ export function Hero() {
 
       {/* Social Proof Section */}
       <div className="relative z-10 w-full py-4 border-t border-b border-white bg-black/80 backdrop-blur-sm flex flex-wrap items-center justify-center gap-6 sm:gap-12 opacity-40 grayscale text-xs sm:text-sm">
-        <span className="font-bold tracking-widest uppercase">LogoIpsum</span>
-        <span className="font-bold tracking-widest uppercase">LogoIpsum</span>
-        <span className="font-bold tracking-widest uppercase">LogoIpsum</span>
-        <span className="font-bold tracking-widest uppercase">LogoIpsum</span>
+        <span className="font-bold tracking-widest uppercase">RackForms</span>
+        <span className="font-bold tracking-widest uppercase">RackForms</span>
+        <span className="font-bold tracking-widest uppercase">RackForms</span>
+        <span className="font-bold tracking-widest uppercase">RackForms</span>
       </div>
     </section>
   );
