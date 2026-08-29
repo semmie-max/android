@@ -495,16 +495,16 @@ const [isResizing, setIsResizing] = useState(false);
                   </button>
                 </div>
 
-                <div className="space-y-2 pt-4">
+                                <div className="space-y-2 pt-4">
                   <div className="h-48 w-full flex items-end justify-between gap-2 sm:gap-4 px-2 border-b border-neutral-800 pb-2">
                     {[
-                      { day: "Mon", h1: "60%", h2: "45%" },
-                      { day: "Tue", h1: "50%", h2: "30%" },
-                      { day: "Wed", h1: "65%", h2: "50%" },
-                      { day: "Thu", h1: "95%", h2: "70%" },
-                      { day: "Fri", h1: "55%", h2: "40%" },
-                      { day: "Sat", h1: "80%", h2: "60%" },
-                      { day: "Sun", h1: "70%", h2: "50%" },
+                      { day: "Mon", h1: forms.length > 0 ? "60%" : "4%", h2: forms.length > 0 ? "45%" : "2%" },
+                      { day: "Tue", h1: forms.length > 0 ? "50%" : "4%", h2: forms.length > 0 ? "30%" : "2%" },
+                      { day: "Wed", h1: forms.length > 0 ? "65%" : "4%", h2: forms.length > 0 ? "50%" : "2%" },
+                      { day: "Thu", h1: forms.length > 0 ? "95%" : "4%", h2: forms.length > 0 ? "70%" : "2%" },
+                      { day: "Fri", h1: forms.length > 0 ? "55%" : "4%", h2: forms.length > 0 ? "40%" : "2%" },
+                      { day: "Sat", h1: forms.length > 0 ? "80%" : "4%", h2: forms.length > 0 ? "60%" : "2%" },
+                      { day: "Sun", h1: forms.length > 0 ? "70%" : "4%", h2: forms.length > 0 ? "50%" : "2%" },
                     ].map((bar, idx) => (
                       <div key={idx} className="flex-1 flex items-end justify-center gap-1 h-full">
                         <div
