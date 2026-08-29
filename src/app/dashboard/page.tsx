@@ -49,6 +49,7 @@ interface FormResponseItem {
 
 interface RackForm {
   id: string;
+  slug?: string;
   title: string;
   description: string;
   status: "draft" | "published" | "closed";
@@ -202,7 +203,10 @@ const [isResizing, setIsResizing] = useState(false);
   // Copy a rack's live share link
   const handleCopyShareLink = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    const url = `${window.location.origin}/android/form?id=${id}&view=live`;
+    const form = forms.find((f) => f.id === id);
+    const url = form?.slug
+      ? `${window.location.origin}/android/form?slug=${form.slug}`
+      : `${window.location.origin}/android/form?id=${id}&view=live`;
     navigator.clipboard.writeText(url);
     setCopiedFormId(id);
     setTimeout(() => setCopiedFormId(null), 2000);

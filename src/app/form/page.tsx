@@ -79,7 +79,8 @@ function FormBuilderSaaS() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const formIdParam = searchParams.get("id");
-  const isLiveView = searchParams.get("view") === "live";
+  const slugParam = searchParams.get("slug");
+  const isLiveView = searchParams.get("view") === "live" || !!slugParam;
 
   // Top Tabs & Sidebar state
   const [topTab, setTopTab] = useState<"dashboard" | "builder" | "responses" | "integration" | "settings">("builder");
@@ -130,6 +131,7 @@ function FormBuilderSaaS() {
   ]);
 
   const [responses, setResponses] = useState<FormResponseItem[]>([]);
+  const [formSlug, setFormSlug] = useState<string>("");
   const autosaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Public Submitter state
   const [liveEmail, setLiveEmail] = useState("");
@@ -141,6 +143,31 @@ function FormBuilderSaaS() {
 
     // 1. Initial Load
   useEffect(() => {
+    if (slugParam) {
+      fetch(`${API_BASE}/api/forms/slug/${slugParam}/public`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.found) {
+            setFormId(data.id);
+            setTitle(data.title);
+            setDescription(data.description);
+            setStatus(data.status);
+            setSettings(data.settings || settings);
+            setQuestions(data.questions || []);
+            setIsNewForm(false);
+            fetch(`${API_BASE}/api/forms/${data.id}/view`, { method: "POST" }).catch(() => {});
+          } else {
+            setFormNotFound(true);
+          }
+          setFormLoaded(true);
+        })
+        .catch(() => {
+          setFormNotFound(true);
+          setFormLoaded(true);
+        });
+      return;
+    }
+
     if (formIdParam) {
       if (isLiveView) {
         fetch(`${API_BASE}/api/forms/${formIdParam}/public`)
@@ -183,6 +210,7 @@ function FormBuilderSaaS() {
             setSettings(data.settings || settings);
             setQuestions(data.questions || []);
             setResponses(data.responses || []);
+            setFormSlug(data.slug || "");
             if (data.questions?.length > 0) {
               setSelectedQuestionId(data.questions[0].id);
             }
@@ -204,7 +232,7 @@ function FormBuilderSaaS() {
     setUpdatedAt(new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }));
     setIsNewForm(true);
     setFormLoaded(true);
-  }, [formIdParam, isLiveView]);
+  }, [formIdParam, slugParam, isLiveView]);
 
   // Load the actual logged in creator's identity for the header pill
   useEffect(() => {
@@ -244,6 +272,15 @@ function FormBuilderSaaS() {
       request
         .then((res) => {
           if (res.ok && isNewForm) setIsNewForm(false);
+          if (res.ok) {
+            res
+              .clone()
+              .json()
+              .then((data) => {
+                if (data.slug) setFormSlug(data.slug);
+              })
+              .catch(() => {});
+          }
           setUpdatedAt(new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }));
           setSavedNotice(true);
           setTimeout(() => setSavedNotice(false), 1500);
@@ -415,7 +452,12 @@ function FormBuilderSaaS() {
     }
   };
 
-  const livePublicUrl = typeof window !== "undefined" ? `${window.location.origin}/android/form?id=${formId}&view=live` : "";
+  const livePublicUrl =
+    typeof window !== "undefined"
+      ? formSlug
+        ? `${window.location.origin}/android/form?slug=${formSlug}`
+        : `${window.location.origin}/android/form?id=${formId}&view=live`
+      : "";
 
   const handleCopyLink = () => {
     if (navigator.clipboard) {
