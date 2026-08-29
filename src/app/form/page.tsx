@@ -461,8 +461,8 @@ function FormBuilderSaaS() {
             <form onSubmit={handleLiveSubmit} className="space-y-8">
               <div className="space-y-4 border-b border-neutral-800 pb-6 -mx-6 sm:-mx-10 -mt-6 sm:-mt-10">
                 {settings.coverImage && (
-                  <div className="w-full aspect-[21/9] sm:aspect-[3/1] bg-black flex items-center justify-center overflow-hidden">
-                    <img src={settings.coverImage} alt="Form cover" className="max-w-full max-h-full object-contain" />
+                  <div className="w-full max-h-[320px] overflow-hidden">
+                    <img src={settings.coverImage} alt="Form cover" className="w-full h-full object-cover" />
                   </div>
                 )}
                 <div className="px-6 sm:px-10 space-y-2">
@@ -480,7 +480,7 @@ function FormBuilderSaaS() {
                       value={liveEmail}
                       onChange={(e) => setLiveEmail(e.target.value)}
                       placeholder="your.email@gmail.com"
-                      className="w-full px-4 py-3 bg-[#050505] border border-neutral-800 rounded-xl text-sm text-white focus:outline-none focus:border-[#ab1f09]"
+                      className="w-full px-4 py-3.5 bg-[#0d0d0d] border border-neutral-700 rounded-xl text-sm text-white placeholder-neutral-600 outline-none focus:border-[#ab1f09] focus:ring-2 focus:ring-[#ab1f09]/20 transition-all"
                     />
                   </div>
                 )}
@@ -489,7 +489,7 @@ function FormBuilderSaaS() {
               {/* Questions */}
               <div className="space-y-6">
                 {questions.map((q, idx) => (
-                  <div key={q.id} className="p-6 bg-[#050505] border border-neutral-800/80 rounded-2xl space-y-4">
+                  <div key={q.id} className="p-5 sm:p-6 bg-[#0a0a0a] border border-neutral-800 rounded-2xl space-y-4 shadow-sm">
                     <label className="block text-sm font-semibold text-white">
                       {idx + 1}. {q.title} {q.required && <span className="text-[#ab1f09]">*</span>}
                     </label>
@@ -500,7 +500,7 @@ function FormBuilderSaaS() {
                         required={q.required}
                         value={liveAnswers[q.id] || ""}
                         onChange={(e) => setLiveAnswers({ ...liveAnswers, [q.id]: e.target.value })}
-                        className="w-full px-4 py-2.5 bg-[#0d0d0d] border border-neutral-800 rounded-xl text-sm text-white focus:border-[#ab1f09] outline-none"
+                        className="w-full px-4 py-3.5 bg-[#0d0d0d] border border-neutral-700 rounded-xl text-sm text-white placeholder-neutral-600 outline-none focus:border-[#ab1f09] focus:ring-2 focus:ring-[#ab1f09]/20 transition-all"
                         placeholder={q.placeholder || "Your answer..."}
                       />
                     )}
@@ -907,8 +907,8 @@ function FormBuilderSaaS() {
             >
               {/* Cover Image */}
               {settings.coverImage ? (
-                <div className="relative w-full aspect-[21/9] sm:aspect-[3/1] bg-black flex items-center justify-center">
-                  <img src={settings.coverImage} alt="Form cover" className="max-w-full max-h-full object-contain" />
+                <div className="relative w-full max-h-[280px] overflow-hidden">
+                  <img src={settings.coverImage} alt="Form cover" className="w-full h-full object-cover" />
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
