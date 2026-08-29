@@ -71,6 +71,7 @@ export interface RackForm {
   settings: FormSettings;
   questions: FormQuestion[];
   responses: FormResponseItem[];
+  viewCount?: number;
 }
 
 function FormBuilderSaaS() {
@@ -148,6 +149,7 @@ function FormBuilderSaaS() {
               setSettings(data.settings || settings);
               setQuestions(data.questions || []);
               setIsNewForm(false);
+              fetch(`${API_BASE}/api/forms/${data.id}/view`, { method: "POST" }).catch(() => {});
             } else {
               setFormNotFound(true);
             }

@@ -56,6 +56,7 @@ interface RackForm {
   updatedAt: string;
   questions: FormQuestion[];
   responses: FormResponseItem[];
+  viewCount?: number;
 }
 
 interface Member {
@@ -254,6 +255,8 @@ const [isResizing, setIsResizing] = useState(false);
 
   // Total Metrics
   const totalSubmissions = forms.reduce((acc, f) => acc + (f.responses?.length || 0), 0);
+  const totalClicks = forms.reduce((acc, f) => acc + (f.viewCount || 0), 0);
+  const clickConversionRate = totalClicks > 0 ? ((totalSubmissions / totalClicks) * 100).toFixed(1) : "0.0";
   const totalRevenue = forms.reduce((acc, f) => {
     const rev = f.responses?.reduce((rAcc, r) => rAcc + (r.totalPaid || 0), 0) || 0;
     return acc + rev;
@@ -820,7 +823,7 @@ const [isResizing, setIsResizing] = useState(false);
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
               <div className="p-5 rounded-2xl bg-[#0d0d0d] border border-neutral-800 space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] font-mono text-neutral-500 uppercase tracking-widest">Total Racks</span>
@@ -865,6 +868,15 @@ const [isResizing, setIsResizing] = useState(false);
                 <svg viewBox="0 0 100 24" className="w-full h-6" preserveAspectRatio="none">
                   <polyline points={toSparklinePoints(avgByDay, 100, 24)} fill="none" stroke="#737373" strokeWidth="2" />
                 </svg>
+              </div>
+
+              <div className="p-5 rounded-2xl bg-[#0d0d0d] border border-neutral-800 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-mono text-neutral-500 uppercase tracking-widest">Link Clicks</span>
+                  <span className="text-[10px] font-mono text-neutral-500">{clickConversionRate}% convert</span>
+                </div>
+                <div className="text-2xl font-bold font-mono text-white">{totalClicks}</div>
+                <p className="text-[10px] font-mono text-neutral-500">Total times your live links were opened</p>
               </div>
             </div>
 
@@ -976,7 +988,7 @@ const [isResizing, setIsResizing] = useState(false);
                     <div key={f.id} className="py-3 flex items-center justify-between text-xs font-mono">
                       <div>
                         <div className="font-semibold text-white">{f.title}</div>
-                        <div className="text-[10px] text-neutral-500">{f.responses?.length || 0} Submissions • Status: {f.status}</div>
+                        <div className="text-[10px] text-neutral-500">{f.viewCount || 0} Clicks • {f.responses?.length || 0} Submissions • Status: {f.status}</div>
                       </div>
                       <button
                         onClick={() => setSelectedFormForAnalytics(f)}
