@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from "react";
+import React, { useState, useEffect, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
@@ -130,7 +130,7 @@ function FormBuilderSaaS() {
   ]);
 
   const [responses, setResponses] = useState<FormResponseItem[]>([]);
-
+  const autosaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Public Submitter state
   const [liveEmail, setLiveEmail] = useState("");
   const [liveAnswers, setLiveAnswers] = useState<Record<string, any>>({});
@@ -228,7 +228,7 @@ function FormBuilderSaaS() {
       questions,
     };
 
-    const timer = setTimeout(() => {
+    autosaveTimerRef.current = setTimeout(() => {
       const request = isNewForm
         ? fetch(`${API_BASE}/api/forms`, {
             method: "POST",
@@ -251,7 +251,11 @@ function FormBuilderSaaS() {
         .catch((err) => console.error("Failed to save rack", err));
     }, 600);
 
-    return () => clearTimeout(timer);
+    return () => {
+      if (autosaveTimerRef.current) {
+        clearTimeout(autosaveTimerRef.current);
+      }
+    };
   }, [formId, title, description, status, settings, questions, isLiveView, formLoaded, isNewForm]);
 
   // Selected Question Helper
@@ -370,6 +374,10 @@ function FormBuilderSaaS() {
   };
 
   const handlePublish = async () => {
+    if (autosaveTimerRef.current) {
+      clearTimeout(autosaveTimerRef.current);
+    }
+
     const token = localStorage.getItem("rack_token");
     const payload = {
       id: formId,
@@ -391,7 +399,10 @@ function FormBuilderSaaS() {
             headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
             body: JSON.stringify(payload),
           });
-      await request;
+      const res = await request;
+      if (!res.ok) {
+        throw new Error("Publish request failed.");
+      }
       setStatus("published");
       setIsNewForm(false);
       setJustPublished(true);
@@ -400,6 +411,7 @@ function FormBuilderSaaS() {
       }, 1800);
     } catch (err) {
       console.error("Failed to publish rack", err);
+      alert("Couldn't publish this rack — check your connection and try again.");
     }
   };
 
