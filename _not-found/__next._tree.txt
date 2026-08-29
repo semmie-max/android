@@ -1,2 +1,2 @@
-:HL["/android/_next/static/chunks/3e-o9r-13nsh2.css","style"]
-0:{"tree":{"name":"","param":null,"prefetchHints":4176,"slots":{"children":{"name":"/_not-found","param":null,"prefetchHints":4192,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":4256,"slots":null}}}}},"staleTime":300,"buildId":"kLRpz8bN2dlvWneLXngZ8"}
+:HL["/android/_next/static/chunks/0va9vjws9g2r7.css","style"]
+0:{"tree":{"name":"","param":null,"prefetchHints":4176,"slots":{"children":{"name":"/_not-found","param":null,"prefetchHints":4192,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":4256,"slots":null}}}}},"staleTime":300,"buildId":"H0_o20upkJr63WcZMJLrW"}
