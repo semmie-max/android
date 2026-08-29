@@ -20,6 +20,7 @@ import {
 } from "react-icons/fi";
 import GlobeStudy from "@/components/originkit/ui/globe-study";
 
+
 interface Candidate {
   id: string;
   name: string;
@@ -72,6 +73,8 @@ export default function RackDashboard() {
   >("overview");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [sidebarWidth, setSidebarWidth] = useState(288); // px, same as w-72
+const [isResizing, setIsResizing] = useState(false);
 
   // User State
   const [displayName, setDisplayName] = useState<string>("Alex");
@@ -106,6 +109,24 @@ export default function RackDashboard() {
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
   const [defaultCurrency, setDefaultCurrency] = useState("USD");
   const [autoSaveEnabled, setAutoSaveEnabled] = useState(true);
+
+  useEffect(() => {
+  const handleMouseMove = (e: MouseEvent) => {
+    if (!isResizing) return;
+    const newWidth = Math.min(Math.max(e.clientX, 200), 420); // min 200px, max 420px
+    setSidebarWidth(newWidth);
+  };
+  const handleMouseUp = () => setIsResizing(false);
+
+  if (isResizing) {
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+  }
+  return () => {
+    window.removeEventListener("mousemove", handleMouseMove);
+    window.removeEventListener("mouseup", handleMouseUp);
+  };
+}, [isResizing]);
 
   // Load User & Forms
   useEffect(() => {
@@ -220,7 +241,8 @@ export default function RackDashboard() {
 
       {/* SIDEBAR NAVIGATION */}
       <aside
-        className={`fixed lg:sticky top-0 left-0 z-40 h-screen w-72 bg-[#0a0a0a] border-r border-neutral-800/80 p-6 flex flex-col justify-between transition-transform duration-300 ease-in-out ${
+        style={{ width: sidebarWidth }}
+        className={`fixed lg:sticky top-0 left-0 z-40 h-screen bg-[#0a0a0a] border-r border-neutral-800/80 p-6 flex flex-col justify-between transition-transform duration-300 ease-in-out ${
           mobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         }`}
       >
@@ -324,7 +346,11 @@ export default function RackDashboard() {
             <FiLogOut className="w-3.5 h-3.5" />
           </button>
         </div>
-      </aside>
+        <div
+    onMouseDown={() => setIsResizing(true)}
+    className="absolute top-0 right-0 h-full w-1 cursor-col-resize hover:bg-[#ab1f09]/50 active:bg-[#ab1f09] transition-colors"
+  />
+</aside>
 
       {/* MOBILE OVERLAY */}
       {mobileMenuOpen && (
