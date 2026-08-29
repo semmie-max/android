@@ -461,8 +461,8 @@ function FormBuilderSaaS() {
             <form onSubmit={handleLiveSubmit} className="space-y-8">
               <div className="space-y-4 border-b border-neutral-800 pb-6 -mx-6 sm:-mx-10 -mt-6 sm:-mt-10">
                 {settings.coverImage && (
-                  <div className="w-full aspect-[16/7] sm:aspect-[16/5] bg-neutral-900 overflow-hidden">
-                    <img src={settings.coverImage} alt="Form cover" className="w-full h-full object-cover" />
+                  <div className="w-full aspect-[21/9] sm:aspect-[3/1] bg-black flex items-center justify-center overflow-hidden">
+                    <img src={settings.coverImage} alt="Form cover" className="max-w-full max-h-full object-contain" />
                   </div>
                 )}
                 <div className="px-6 sm:px-10 space-y-2">
@@ -907,8 +907,8 @@ function FormBuilderSaaS() {
             >
               {/* Cover Image */}
               {settings.coverImage ? (
-                <div className="relative w-full aspect-[16/6] sm:aspect-[16/5] bg-neutral-900">
-                  <img src={settings.coverImage} alt="Form cover" className="w-full h-full object-cover" />
+                <div className="relative w-full aspect-[21/9] sm:aspect-[3/1] bg-black flex items-center justify-center">
+                  <img src={settings.coverImage} alt="Form cover" className="max-w-full max-h-full object-contain" />
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -1246,6 +1246,34 @@ function FormBuilderSaaS() {
             <h2 className="text-xl font-bold text-white">Responses ({responses.length})</h2>
           </div>
 
+          {/* Auto Voting Leaderboard - only appears if this rack has a paid_voting question */}
+          {questions.find((q) => q.type === "paid_voting") && (
+            <div className="p-5 sm:p-6 rounded-2xl border border-[#ab1f09]/40 bg-[#0d0d0d] space-y-3">
+              <h3 className="text-xs font-mono text-[#fff7d3] uppercase tracking-widest">Live Leaderboard</h3>
+              <div className="space-y-2">
+                {[...(questions.find((q) => q.type === "paid_voting")?.candidates || [])]
+                  .sort((a, b) => b.votes - a.votes)
+                  .map((cand, idx) => (
+                    <div
+                      key={cand.id}
+                      className="flex items-center justify-between p-3 bg-[#050505] border border-neutral-800 rounded-xl text-xs font-mono"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                          idx === 0 ? "bg-[#ab1f09] text-[#fff7d3]" : "bg-neutral-900 text-neutral-400 border border-neutral-800"
+                        }`}>
+                          {idx + 1}
+                        </span>
+                        <span className="text-white font-semibold">{cand.name}</span>
+                        {cand.category && <span className="text-neutral-500">{cand.category}</span>}
+                      </div>
+                      <span className="text-[#ab1f09] font-bold">{cand.votes} votes</span>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          )}
+
           {responses.length === 0 ? (
             <div className="p-10 text-center rounded-2xl border border-neutral-800 bg-[#0d0d0d] text-sm text-neutral-500 font-mono">
               No responses yet. Share your link to start collecting submissions.
@@ -1253,17 +1281,37 @@ function FormBuilderSaaS() {
           ) : (
             <div className="space-y-3">
               {responses.map((r) => (
-                <div key={r.id} className="p-4 rounded-2xl border border-neutral-800 bg-[#0d0d0d] flex items-center justify-between text-xs font-mono">
-                  <div className="space-y-1">
-                    <div className="text-white font-semibold">{r.email || "Anonymous"}</div>
-                    <div className="text-neutral-500">{r.submittedAt}</div>
-                    {r.votedCandidate && (
-                      <div className="text-[#fff7d3]">Voted: {r.votedCandidate} ({r.voteCount} votes)</div>
-                    )}
+                <div key={r.id} className="p-4 sm:p-5 rounded-2xl border border-neutral-800 bg-[#0d0d0d] space-y-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-neutral-800">
+                    <div className="space-y-0.5">
+                      <div className="text-white font-semibold text-sm">{r.email || "Anonymous"}</div>
+                      <div className="text-neutral-500 text-[11px] font-mono">{r.submittedAt}</div>
+                    </div>
+                    {r.totalPaid ? (
+                      <div className="text-[#ab1f09] font-bold text-sm font-mono">${r.totalPaid.toFixed(2)}</div>
+                    ) : null}
                   </div>
-                  {r.totalPaid ? (
-                    <div className="text-[#ab1f09] font-bold">${r.totalPaid.toFixed(2)}</div>
-                  ) : null}
+
+                  {r.votedCandidate && (
+                    <div className="text-xs font-mono px-3 py-2 bg-[#ab1f09]/10 border border-[#ab1f09]/30 rounded-xl text-[#fff7d3]">
+                      Voted for <span className="font-bold">{r.votedCandidate}</span> ({r.voteCount} vote{r.voteCount !== 1 ? "s" : ""})
+                    </div>
+                  )}
+
+                  {r.answers && Object.keys(r.answers).length > 0 && (
+                    <div className="space-y-2">
+                      {questions
+                        .filter((q) => r.answers[q.id] !== undefined && r.answers[q.id] !== "")
+                        .map((q) => (
+                          <div key={q.id} className="text-xs">
+                            <div className="text-neutral-500 font-mono mb-0.5">{q.title}</div>
+                            <div className="text-white">
+                              {Array.isArray(r.answers[q.id]) ? r.answers[q.id].join(", ") : String(r.answers[q.id])}
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
