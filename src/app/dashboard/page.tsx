@@ -240,8 +240,8 @@ const [isResizing, setIsResizing] = useState(false);
       </header>
 
       {/* SIDEBAR NAVIGATION */}
-      <aside
-        style={{ width: sidebarWidth }}
+            <aside
+        style={{ width: sidebarWidth, maxWidth: "85vw" }}
         className={`fixed lg:sticky top-0 left-0 z-40 h-screen bg-[#0a0a0a] border-r border-neutral-800/80 p-6 flex flex-col justify-between transition-transform duration-300 ease-in-out ${
           mobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         }`}
@@ -346,9 +346,9 @@ const [isResizing, setIsResizing] = useState(false);
             <FiLogOut className="w-3.5 h-3.5" />
           </button>
         </div>
-        <div
+                <div
     onMouseDown={() => setIsResizing(true)}
-    className="absolute top-0 right-0 h-full w-1 cursor-col-resize hover:bg-[#ab1f09]/50 active:bg-[#ab1f09] transition-colors"
+    className="hidden lg:block absolute top-0 right-0 h-full w-1 cursor-col-resize hover:bg-[#ab1f09]/50 active:bg-[#ab1f09] transition-colors"
   />
 </aside>
 
