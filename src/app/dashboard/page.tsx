@@ -508,7 +508,7 @@ const [isResizing, setIsResizing] = useState(false);
                   />
                 </div>
                 <button
-                  onClick={() => router.push("/form")}
+                  onClick={() => window.open("/android/form", "_blank")}
                   className="px-4 py-2.5 bg-[#ab1f09] hover:bg-[#c2240b] text-[#fff7d3] font-mono font-medium text-xs tracking-wider uppercase rounded-xl transition-all shadow-lg shadow-[#ab1f09]/20 cursor-pointer whitespace-nowrap"
                 >
                   + New Rack
@@ -706,7 +706,7 @@ const [isResizing, setIsResizing] = useState(false);
                       filteredForms.slice(0, 6).map((form) => (
                         <tr
                           key={form.id}
-                          onClick={() => router.push(`/form?id=${form.id}`)}
+                          onClick={() => window.open(`/android/form?id=${form.id}`, "_blank")}
                           className="hover:bg-neutral-900/40 transition-colors cursor-pointer"
                         >
                           <td className="py-3 text-[#fff7d3]">{form.title}</td>
@@ -741,7 +741,7 @@ const [isResizing, setIsResizing] = useState(false);
                 <p className="text-xs text-neutral-400 mt-1">Manage, filter, and modify all your active and draft forms.</p>
               </div>
               <button
-                onClick={() => router.push("/form")}
+                onClick={() => window.open("/android/form", "_blank")}
                 className="px-4 py-2 bg-[#ab1f09] hover:bg-[#c2240b] text-[#fff7d3] text-xs font-mono font-medium rounded-xl self-start sm:self-auto cursor-pointer"
               >
                 + New Rack
@@ -805,12 +805,12 @@ const [isResizing, setIsResizing] = useState(false);
                           {copiedFormId === form.id ? "Copied!" : "Share"}
                         </button>
                       )}
-                      <button
-                        onClick={() => router.push(`/form?id=${form.id}`)}
-                        className="text-[#ab1f09] hover:underline cursor-pointer"
-                      >
-                        Open Studio →
-                      </button>
+                                          <button
+                      onClick={() => window.open(`/android/form?id=${form.id}`, "_blank")}
+                      className="text-[#ab1f09] hover:underline cursor-pointer"
+                    >
+                      Open Studio →
+                    </button>
                     </div>
                   </div>
                 </div>
