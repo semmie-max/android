@@ -49,6 +49,7 @@ export interface FormSettings {
   confirmationMessage: string;
   accentColor: string;
   fontFamily: string;
+  coverImage?: string;
 }
 
 export interface FormResponseItem {
@@ -105,6 +106,7 @@ function FormBuilderSaaS() {
     confirmationMessage: "Thank you! Your response has been securely recorded.",
     accentColor: "#ab1f09",
     fontFamily: "font-sans",
+    coverImage: "",
   });
 
   const [questions, setQuestions] = useState<FormQuestion[]>([
@@ -400,14 +402,32 @@ function FormBuilderSaaS() {
     }
   };
 
+  const handleCoverImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      alert("Please choose an image under 2MB.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      setSettings({ ...settings, coverImage: reader.result as string });
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveCoverImage = () => {
+    setSettings({ ...settings, coverImage: "" });
+  };
+
   // =========================================================================
   // 1. PUBLIC LIVE RESPONDENT VIEW
   // =========================================================================
   if (isLiveView) {
     return (
       <div className="min-h-screen w-full bg-[#050505] text-white flex flex-col justify-center items-center p-4 sm:p-8 font-sans selection:bg-[#ab1f09] selection:text-[#fff7d3]">
-        <div className="w-full max-w-2xl bg-[#0d0d0d] border border-neutral-800 rounded-3xl p-6 sm:p-10 shadow-2xl space-y-8 relative overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#ab1f09] via-[#fff7d3]/50 to-[#ab1f09]" />
+        <div className="w-full max-w-2xl bg-[#0d0d0d] border border-neutral-800 rounded-3xl p-0 shadow-2xl space-y-0 relative overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#ab1f09] via-[#fff7d3]/50 to-[#ab1f09] z-10" />
 
           {!formLoaded ? (
             <div className="text-center py-16">
@@ -439,11 +459,18 @@ function FormBuilderSaaS() {
             </div>
           ) : (
             <form onSubmit={handleLiveSubmit} className="space-y-8">
-              <div className="space-y-2 border-b border-neutral-800 pb-6">
-                <h1 className="text-3xl font-bold text-white tracking-tight">{title}</h1>
-                <p className="text-sm text-neutral-400 font-light leading-relaxed">{description}</p>
+              <div className="space-y-4 border-b border-neutral-800 pb-6 -mx-6 sm:-mx-10 -mt-6 sm:-mt-10">
+                {settings.coverImage && (
+                  <div className="w-full aspect-[16/7] sm:aspect-[16/5] bg-neutral-900 overflow-hidden">
+                    <img src={settings.coverImage} alt="Form cover" className="w-full h-full object-cover" />
+                  </div>
+                )}
+                <div className="px-6 sm:px-10 space-y-2">
+                  <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight break-words">{title}</h1>
+                  <p className="text-sm text-neutral-400 font-light leading-relaxed break-words">{description}</p>
+                </div>
                 {settings.collectEmail && (
-                  <div className="pt-4">
+                  <div className="px-6 sm:px-10 pt-2">
                     <label className="block text-xs font-mono text-neutral-400 uppercase mb-1.5">
                       Email Address <span className="text-[#ab1f09]">*</span>
                     </label>
@@ -871,29 +898,66 @@ function FormBuilderSaaS() {
           
           <div className="w-full max-w-2xl space-y-5">
             
-            {/* Header Block */}
+            {/* Header Block - Permanent Title, Description & Cover Image */}
             <div
               onClick={() => setSelectedQuestionId("q_header")}
-              className={`p-6 sm:p-8 rounded-2xl bg-[#0d0d0d] border transition-all cursor-pointer relative shadow-lg ${
+              className={`rounded-2xl bg-[#0d0d0d] border transition-all cursor-pointer relative shadow-lg overflow-hidden ${
                 selectedQuestionId === "q_header" ? "border-[#ab1f09] ring-1 ring-[#ab1f09]" : "border-neutral-800"
               }`}
             >
-              {/* Type Pill */}
-              <div className="flex items-center gap-2 mb-3">
-                <span className="text-xs font-bold text-[#ab1f09] font-mono">T</span>
-                <span className="text-xs font-semibold text-[#fff7d3] font-mono">Heading</span>
-                <svg className="w-3 h-3 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                </svg>
-              </div>
+              {/* Cover Image */}
+              {settings.coverImage ? (
+                <div className="relative w-full aspect-[16/6] sm:aspect-[16/5] bg-neutral-900">
+                  <img src={settings.coverImage} alt="Form cover" className="w-full h-full object-cover" />
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemoveCoverImage();
+                    }}
+                    className="absolute top-3 right-3 px-2.5 py-1 bg-black/70 hover:bg-black text-white text-[10px] font-mono rounded-lg cursor-pointer"
+                  >
+                    Remove Image
+                  </button>
+                </div>
+              ) : (
+                <label
+                  onClick={(e) => e.stopPropagation()}
+                  className="flex flex-col items-center justify-center gap-2 w-full py-6 sm:py-8 border-b border-dashed border-neutral-800 text-neutral-500 hover:text-[#fff7d3] hover:border-[#ab1f09]/50 cursor-pointer transition-colors"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14M14 8h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  <span className="text-[11px] font-mono">Add a cover image (optional, under 2MB)</span>
+                  <input type="file" accept="image/*" onChange={handleCoverImageUpload} className="hidden" />
+                </label>
+              )}
 
-              <input
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                className="w-full text-2xl font-bold text-white bg-transparent border-b border-neutral-800 focus:border-[#ab1f09] outline-none pb-1"
-                placeholder="Form Heading..."
-              />
+              <div className="p-6 sm:p-8 space-y-3">
+                {/* Type Pill */}
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xs font-bold text-[#ab1f09] font-mono">T</span>
+                  <span className="text-xs font-semibold text-[#fff7d3] font-mono">Form Header</span>
+                  <svg className="w-3 h-3 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="w-full text-xl sm:text-2xl font-bold text-white bg-transparent border-b border-neutral-800 focus:border-[#ab1f09] outline-none pb-1"
+                  placeholder="Form Heading..."
+                />
+
+                <textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  rows={2}
+                  className="w-full text-sm text-neutral-400 font-light bg-transparent border-b border-neutral-800 focus:border-[#ab1f09] outline-none pb-1 resize-none"
+                  placeholder="Describe what this form is about..."
+                />
+              </div>
             </div>
 
             {/* Questions Blocks Stack */}
