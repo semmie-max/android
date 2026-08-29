@@ -512,13 +512,14 @@ export default function RackDashboard() {
                 </div>
 
                 <div className="relative my-auto min-h-[220px] rounded-xl overflow-hidden">
-                  <GlobeStudy
-                    background="#0a0a0a"
-                    baseColor="#3f3f46"
-                    pinColor="#ab1f09"
-                    locations={linkLocations}
-                    style={{ minWidth: 0, minHeight: 0 }}
-                  />
+<GlobeStudy
+  background="#0a0a0a"
+  baseColor="#ab1f09"
+  pinColor="#ab1f09"
+  locations={linkLocations}
+  globe={{ radius: 115 }}
+  style={{ minWidth: 0, minHeight: 0 }}
+/>
                 </div>
 
                 <div className="flex items-center justify-between text-xs font-mono pt-2 border-t border-neutral-800/80 text-neutral-400">
