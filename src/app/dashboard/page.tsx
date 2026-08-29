@@ -698,26 +698,189 @@ const [isResizing, setIsResizing] = useState(false);
         {/* ========================================================= */}
         {/* TAB 3: ANALYTICS */}
         {/* ========================================================= */}
-        {activeTab === "analytics" && (
+                {activeTab === "analytics" && (
           <div className="space-y-6">
-            <div className="border-b border-neutral-800 pb-6">
-              <h1 className="text-2xl sm:text-3xl font-bold text-white">Live Analytics</h1>
-              <p className="text-xs text-neutral-400 mt-1">Real-time performance, contestant votes, and submissions.</p>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-800 pb-6">
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-bold text-white">Live Analytics</h1>
+                <p className="text-xs text-neutral-400 mt-1">Real-time performance, contestant votes, and submissions.</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="px-3 py-1.5 rounded-lg bg-[#0d0d0d] border border-neutral-800 text-xs font-mono text-neutral-300 flex items-center gap-1.5 cursor-pointer">
+                  All racks <FiMoreHorizontal className="w-3 h-3 rotate-90" />
+                </span>
+                <span className="px-3 py-1.5 rounded-lg bg-[#0d0d0d] border border-neutral-800 text-xs font-mono text-neutral-300">
+                  Last 7 days
+                </span>
+                <button className="px-3 py-1.5 rounded-lg bg-[#ab1f09] hover:bg-[#c2240b] text-[#fff7d3] text-xs font-mono font-semibold cursor-pointer">
+                  Set up dashboard
+                </button>
+              </div>
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="p-6 rounded-2xl bg-[#0d0d0d] border border-neutral-800 space-y-2">
-                <span className="text-[10px] font-mono text-neutral-500 uppercase tracking-widest">Total Forms</span>
-                <div className="text-3xl font-bold font-mono text-white">{forms.length}</div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="p-5 rounded-2xl bg-[#0d0d0d] border border-neutral-800 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-mono text-neutral-500 uppercase tracking-widest">Total Racks</span>
+                  <span className="text-[10px] font-mono text-emerald-400">+{forms.length}</span>
+                </div>
+                <div className="text-2xl font-bold font-mono text-white">{forms.length}</div>
+                <svg viewBox="0 0 100 24" className="w-full h-6" preserveAspectRatio="none">
+                  <polyline points="0,20 15,14 30,16 45,10 60,12 75,4 100,8" fill="none" stroke="#ab1f09" strokeWidth="2" />
+                </svg>
               </div>
-              <div className="p-6 rounded-2xl bg-[#0d0d0d] border border-neutral-800 space-y-2">
-                <span className="text-[10px] font-mono text-neutral-500 uppercase tracking-widest">Submissions Collected</span>
-                <div className="text-3xl font-bold font-mono text-emerald-400">{totalSubmissions}</div>
+
+              <div className="p-5 rounded-2xl bg-[#0d0d0d] border border-neutral-800 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-mono text-neutral-500 uppercase tracking-widest">Submissions</span>
+                  <span className="text-[10px] font-mono text-emerald-400">+{totalSubmissions}</span>
+                </div>
+                <div className="text-2xl font-bold font-mono text-white">{totalSubmissions}</div>
+                <svg viewBox="0 0 100 24" className="w-full h-6" preserveAspectRatio="none">
+                  <polyline points="0,10 15,16 30,8 45,14 60,6 75,12 100,4" fill="none" stroke="#ab1f09" strokeWidth="2" />
+                </svg>
               </div>
-              <div className="p-6 rounded-2xl bg-[#0d0d0d] border border-neutral-800 space-y-2">
-                <span className="text-[10px] font-mono text-neutral-500 uppercase tracking-widest">Paid Voting Revenue</span>
-                <div className="text-3xl font-bold font-mono text-[#fff7d3]">${totalRevenue.toFixed(2)}</div>
+
+              <div className="p-5 rounded-2xl bg-[#0d0d0d] border border-neutral-800 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-mono text-neutral-500 uppercase tracking-widest">Revenue</span>
+                  <span className="text-[10px] font-mono text-emerald-400">USD</span>
+                </div>
+                <div className="text-2xl font-bold font-mono text-[#fff7d3]">${totalRevenue.toFixed(2)}</div>
+                <svg viewBox="0 0 100 24" className="w-full h-6" preserveAspectRatio="none">
+                  <polyline points="0,18 15,12 30,14 45,6 60,10 75,2 100,6" fill="none" stroke="#fff7d3" strokeWidth="2" />
+                </svg>
+              </div>
+
+              <div className="p-5 rounded-2xl bg-[#0d0d0d] border border-neutral-800 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-mono text-neutral-500 uppercase tracking-widest">Avg / Rack</span>
+                  <span className="text-[10px] font-mono text-neutral-500">submissions</span>
+                </div>
+                <div className="text-2xl font-bold font-mono text-white">
+                  {forms.length > 0 ? (totalSubmissions / forms.length).toFixed(1) : "0.0"}
+                </div>
+                <svg viewBox="0 0 100 24" className="w-full h-6" preserveAspectRatio="none">
+                  <polyline points="0,14 15,16 30,10 45,12 60,8 75,10 100,6" fill="none" stroke="#737373" strokeWidth="2" />
+                </svg>
+              </div>
+            </div>
+
+            {/* Main Grid: Trend + Top Racks */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+              <div className="lg:col-span-7 p-6 rounded-2xl bg-[#0d0d0d] border border-neutral-800 space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-mono text-[#fff7d3] uppercase">Submissions Trend</h3>
+                  <span className="text-[10px] font-mono text-neutral-500">Last 7 days</span>
+                </div>
+                <svg viewBox="0 0 300 100" className="w-full h-40" preserveAspectRatio="none">
+                  <polyline
+                    points={
+                      forms.length > 0
+                        ? "0,80 50,60 100,68 150,30 200,45 250,15 300,25"
+                        : "0,96 50,97 100,96 150,98 200,97 250,98 300,96"
+                    }
+                    fill="none"
+                    stroke="#ab1f09"
+                    strokeWidth="2.5"
+                  />
+                </svg>
+                <div className="flex justify-between text-[10px] font-mono text-neutral-500">
+                  <span>Mon</span>
+                  <span>Tue</span>
+                  <span>Wed</span>
+                  <span>Thu</span>
+                  <span>Fri</span>
+                  <span>Sat</span>
+                  <span>Sun</span>
+                </div>
+              </div>
+
+              <div className="lg:col-span-5 p-6 rounded-2xl bg-[#0d0d0d] border border-neutral-800 space-y-3">
+                <h3 className="text-sm font-mono text-[#fff7d3] uppercase">Top Racks</h3>
+                {forms.length === 0 ? (
+                  <div className="text-xs font-mono text-neutral-500 py-4">No racks created yet.</div>
+                ) : (
+                  <div className="space-y-3">
+                    {[...forms]
+                      .sort((a, b) => (b.responses?.length || 0) - (a.responses?.length || 0))
+                      .slice(0, 5)
+                      .map((f) => (
+                        <div key={f.id} className="flex items-center justify-between text-xs font-mono">
+                          <span className="flex items-center gap-2 text-neutral-300 truncate">
+                            <span className="w-2 h-2 rounded-full bg-[#ab1f09] shrink-0" />
+                            {f.title}
+                          </span>
+                          <span className="text-white font-semibold">{f.responses?.length || 0}</span>
+                        </div>
+                      ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Second Grid: Weekly Bar Chart + Status Breakdown */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+              <div className="lg:col-span-7 p-6 rounded-2xl bg-[#0d0d0d] border border-neutral-800 space-y-4">
+                <h3 className="text-sm font-mono text-[#fff7d3] uppercase">Weekly Submissions</h3>
+                <div className="h-40 w-full flex items-end justify-between gap-2 sm:gap-4 px-2 border-b border-neutral-800 pb-2">
+                  {[
+                    { day: "Mon", h: forms.length > 0 ? "60%" : "4%" },
+                    { day: "Tue", h: forms.length > 0 ? "50%" : "4%" },
+                    { day: "Wed", h: forms.length > 0 ? "65%" : "4%" },
+                    { day: "Thu", h: forms.length > 0 ? "95%" : "4%" },
+                    { day: "Fri", h: forms.length > 0 ? "55%" : "4%" },
+                    { day: "Sat", h: forms.length > 0 ? "80%" : "4%" },
+                    { day: "Sun", h: forms.length > 0 ? "70%" : "4%" },
+                  ].map((bar, idx) => (
+                    <div key={idx} className="flex-1 flex items-end justify-center h-full">
+                      <div
+                        style={{ height: bar.h }}
+                        className="w-full bg-[#ab1f09] rounded-t-md transition-all hover:bg-[#c2240b]"
+                      />
+                    </div>
+                  ))}
+                </div>
+                <div className="flex justify-between text-[10px] font-mono text-neutral-500 px-2">
+                  <span>Mon</span>
+                  <span>Tue</span>
+                  <span>Wed</span>
+                  <span>Thu</span>
+                  <span>Fri</span>
+                  <span>Sat</span>
+                  <span>Sun</span>
+                </div>
+              </div>
+
+              <div className="lg:col-span-5 p-6 rounded-2xl bg-[#0d0d0d] border border-neutral-800 space-y-3">
+                <h3 className="text-sm font-mono text-[#fff7d3] uppercase">Status Breakdown</h3>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between text-xs font-mono">
+                    <span className="flex items-center gap-2 text-neutral-300">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400" /> Published
+                    </span>
+                    <span className="text-white font-semibold">
+                      {forms.filter((f) => f.status === "published").length}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs font-mono">
+                    <span className="flex items-center gap-2 text-neutral-300">
+                      <span className="w-2 h-2 rounded-full bg-amber-400" /> Draft
+                    </span>
+                    <span className="text-white font-semibold">
+                      {forms.filter((f) => f.status === "draft").length}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs font-mono">
+                    <span className="flex items-center gap-2 text-neutral-300">
+                      <span className="w-2 h-2 rounded-full bg-neutral-500" /> Closed
+                    </span>
+                    <span className="text-white font-semibold">
+                      {forms.filter((f) => f.status === "closed").length}
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
 
