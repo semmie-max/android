@@ -110,6 +110,25 @@ const [isResizing, setIsResizing] = useState(false);
   const [defaultCurrency, setDefaultCurrency] = useState("USD");
   const [autoSaveEnabled, setAutoSaveEnabled] = useState(true);
 
+  // Payments & Payouts
+  const [payoutMethod, setPayoutMethod] = useState("Bank Transfer");
+  const [platformFee, setPlatformFee] = useState(5);
+
+  // Workspace
+  const [workspaceName, setWorkspaceName] = useState("My Workspace");
+  const [restrictDomain, setRestrictDomain] = useState("");
+
+  // Rack Defaults
+  const [defaultVisibility, setDefaultVisibility] = useState<"draft" | "published">("draft");
+  const [defaultVotingType, setDefaultVotingType] = useState<"free" | "paid">("free");
+  const [autoCloseDays, setAutoCloseDays] = useState(0);
+  const [requireEmailToSubmit, setRequireEmailToSubmit] = useState(true);
+
+  // Notifications
+  const [notifyOnSubmission, setNotifyOnSubmission] = useState(true);
+  const [notifyOnClose, setNotifyOnClose] = useState(true);
+  const [weeklySummary, setWeeklySummary] = useState(false);
+
   useEffect(() => {
   const handleMouseMove = (e: MouseEvent) => {
     if (!isResizing) return;
@@ -194,6 +213,26 @@ const [isResizing, setIsResizing] = useState(false);
     setMembers(members.filter((m) => m.id !== id));
   };
 
+  // Export all workspace data as a downloadable JSON file
+  const handleExportData = () => {
+    const payload = { workspaceName, forms, members };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${workspaceName.replace(/\s+/g, "_").toLowerCase()}_export.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // Wipe every rack from this workspace after confirmation
+  const handleDeleteWorkspace = () => {
+    const confirmed = window.confirm("This will permanently delete all racks in this workspace. This cannot be undone. Continue?");
+    if (!confirmed) return;
+    localStorage.setItem("rack_forms", "[]");
+    setForms([]);
+  };
+
   // Total Metrics
   const totalSubmissions = forms.reduce((acc, f) => acc + (f.responses?.length || 0), 0);
   const totalRevenue = forms.reduce((acc, f) => {
@@ -209,6 +248,49 @@ const [isResizing, setIsResizing] = useState(false);
       .filter((r) => typeof r.lat === "number" && typeof r.lon === "number")
       .map((r) => ({ lat: r.lat as number, lon: r.lon as number }))
   );
+
+  // Real Analytics: last 7 calendar days, computed straight from forms/responses
+  const last7Days = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (6 - i));
+    return d;
+  });
+
+  const dayLabels = last7Days.map((d) => d.toLocaleDateString("en-US", { weekday: "short" }));
+
+  const submissionsByDay = last7Days.map((d) => {
+    const dayStr = d.toDateString();
+    return forms.reduce(
+      (acc, f) => acc + (f.responses || []).filter((r) => new Date(r.submittedAt).toDateString() === dayStr).length,
+      0
+    );
+  });
+
+  const revenueByDay = last7Days.map((d) => {
+    const dayStr = d.toDateString();
+    return forms.reduce((acc, f) => {
+      const dayResponses = (f.responses || []).filter((r) => new Date(r.submittedAt).toDateString() === dayStr);
+      return acc + dayResponses.reduce((rAcc, r) => rAcc + (r.totalPaid || 0), 0);
+    }, 0);
+  });
+
+  const racksByDay = last7Days.map((d) => {
+    const dayStr = d.toDateString();
+    return forms.filter((f) => new Date(f.createdAt).toDateString() === dayStr).length;
+  });
+
+  const avgByDay = submissionsByDay.map((v) => (forms.length > 0 ? v / forms.length : 0));
+
+  const toSparklinePoints = (values: number[], width: number, height: number) => {
+    const max = Math.max(...values, 1);
+    const step = width / Math.max(values.length - 1, 1);
+    return values.map((v, i) => `${(i * step).toFixed(1)},${(height - (v / max) * height).toFixed(1)}`).join(" ");
+  };
+
+  const toBarHeights = (values: number[]) => {
+    const max = Math.max(...values, 1);
+    return values.map((v) => (v <= 0 ? "4%" : `${Math.max((v / max) * 100, 6)}%`));
+  };
 
   // Filtered Racks
   const filteredForms = forms.filter((f) => {
@@ -727,7 +809,7 @@ const [isResizing, setIsResizing] = useState(false);
                 </div>
                 <div className="text-2xl font-bold font-mono text-white">{forms.length}</div>
                 <svg viewBox="0 0 100 24" className="w-full h-6" preserveAspectRatio="none">
-                  <polyline points="0,20 15,14 30,16 45,10 60,12 75,4 100,8" fill="none" stroke="#ab1f09" strokeWidth="2" />
+                  <polyline points={toSparklinePoints(racksByDay, 100, 24)} fill="none" stroke="#ab1f09" strokeWidth="2" />
                 </svg>
               </div>
 
@@ -738,7 +820,7 @@ const [isResizing, setIsResizing] = useState(false);
                 </div>
                 <div className="text-2xl font-bold font-mono text-white">{totalSubmissions}</div>
                 <svg viewBox="0 0 100 24" className="w-full h-6" preserveAspectRatio="none">
-                  <polyline points="0,10 15,16 30,8 45,14 60,6 75,12 100,4" fill="none" stroke="#ab1f09" strokeWidth="2" />
+                  <polyline points={toSparklinePoints(submissionsByDay, 100, 24)} fill="none" stroke="#ab1f09" strokeWidth="2" />
                 </svg>
               </div>
 
@@ -749,7 +831,7 @@ const [isResizing, setIsResizing] = useState(false);
                 </div>
                 <div className="text-2xl font-bold font-mono text-[#fff7d3]">${totalRevenue.toFixed(2)}</div>
                 <svg viewBox="0 0 100 24" className="w-full h-6" preserveAspectRatio="none">
-                  <polyline points="0,18 15,12 30,14 45,6 60,10 75,2 100,6" fill="none" stroke="#fff7d3" strokeWidth="2" />
+                  <polyline points={toSparklinePoints(revenueByDay, 100, 24)} fill="none" stroke="#fff7d3" strokeWidth="2" />
                 </svg>
               </div>
 
@@ -762,7 +844,7 @@ const [isResizing, setIsResizing] = useState(false);
                   {forms.length > 0 ? (totalSubmissions / forms.length).toFixed(1) : "0.0"}
                 </div>
                 <svg viewBox="0 0 100 24" className="w-full h-6" preserveAspectRatio="none">
-                  <polyline points="0,14 15,16 30,10 45,12 60,8 75,10 100,6" fill="none" stroke="#737373" strokeWidth="2" />
+                  <polyline points={toSparklinePoints(avgByDay, 100, 24)} fill="none" stroke="#737373" strokeWidth="2" />
                 </svg>
               </div>
             </div>
@@ -774,26 +856,18 @@ const [isResizing, setIsResizing] = useState(false);
                   <h3 className="text-sm font-mono text-[#fff7d3] uppercase">Submissions Trend</h3>
                   <span className="text-[10px] font-mono text-neutral-500">Last 7 days</span>
                 </div>
-                <svg viewBox="0 0 300 100" className="w-full h-40" preserveAspectRatio="none">
+                                <svg viewBox="0 0 300 100" className="w-full h-40" preserveAspectRatio="none">
                   <polyline
-                    points={
-                      forms.length > 0
-                        ? "0,80 50,60 100,68 150,30 200,45 250,15 300,25"
-                        : "0,96 50,97 100,96 150,98 200,97 250,98 300,96"
-                    }
+                    points={toSparklinePoints(submissionsByDay, 300, 100)}
                     fill="none"
                     stroke="#ab1f09"
                     strokeWidth="2.5"
                   />
                 </svg>
                 <div className="flex justify-between text-[10px] font-mono text-neutral-500">
-                  <span>Mon</span>
-                  <span>Tue</span>
-                  <span>Wed</span>
-                  <span>Thu</span>
-                  <span>Fri</span>
-                  <span>Sat</span>
-                  <span>Sun</span>
+                  {dayLabels.map((label, idx) => (
+                    <span key={idx}>{label}</span>
+                  ))}
                 </div>
               </div>
 
@@ -825,31 +899,19 @@ const [isResizing, setIsResizing] = useState(false);
               <div className="lg:col-span-7 p-6 rounded-2xl bg-[#0d0d0d] border border-neutral-800 space-y-4">
                 <h3 className="text-sm font-mono text-[#fff7d3] uppercase">Weekly Submissions</h3>
                 <div className="h-40 w-full flex items-end justify-between gap-2 sm:gap-4 px-2 border-b border-neutral-800 pb-2">
-                  {[
-                    { day: "Mon", h: forms.length > 0 ? "60%" : "4%" },
-                    { day: "Tue", h: forms.length > 0 ? "50%" : "4%" },
-                    { day: "Wed", h: forms.length > 0 ? "65%" : "4%" },
-                    { day: "Thu", h: forms.length > 0 ? "95%" : "4%" },
-                    { day: "Fri", h: forms.length > 0 ? "55%" : "4%" },
-                    { day: "Sat", h: forms.length > 0 ? "80%" : "4%" },
-                    { day: "Sun", h: forms.length > 0 ? "70%" : "4%" },
-                  ].map((bar, idx) => (
+                  {toBarHeights(submissionsByDay).map((h, idx) => (
                     <div key={idx} className="flex-1 flex items-end justify-center h-full">
                       <div
-                        style={{ height: bar.h }}
+                        style={{ height: h }}
                         className="w-full bg-[#ab1f09] rounded-t-md transition-all hover:bg-[#c2240b]"
                       />
                     </div>
                   ))}
                 </div>
                 <div className="flex justify-between text-[10px] font-mono text-neutral-500 px-2">
-                  <span>Mon</span>
-                  <span>Tue</span>
-                  <span>Wed</span>
-                  <span>Thu</span>
-                  <span>Fri</span>
-                  <span>Sat</span>
-                  <span>Sun</span>
+                  {dayLabels.map((label, idx) => (
+                    <span key={idx}>{label}</span>
+                  ))}
                 </div>
               </div>
 
@@ -985,14 +1047,55 @@ const [isResizing, setIsResizing] = useState(false);
         {/* TAB 5: SETTINGS */}
         {/* ========================================================= */}
         {activeTab === "settings" && (
-          <div className="max-w-2xl mx-auto space-y-6">
+          <div className="max-w-3xl mx-auto space-y-6">
             <div className="border-b border-neutral-800 pb-6">
               <h1 className="text-2xl font-bold text-white">Workspace Settings</h1>
-              <p className="text-xs text-neutral-400 mt-1">Configure your default currencies, auto-save, and workspace rules.</p>
+              <p className="text-xs text-neutral-400 mt-1">Configure payments, rack defaults, notifications, and your workspace.</p>
             </div>
 
+            {/* Workspace */}
             <div className="p-6 sm:p-8 rounded-2xl bg-[#0d0d0d] border border-neutral-800 space-y-6">
-              
+              <h3 className="text-sm font-mono text-[#fff7d3] uppercase">Workspace</h3>
+
+              <div className="space-y-2">
+                <label className="block text-xs font-mono text-neutral-400 uppercase mb-1.5">Workspace Name</label>
+                <input
+                  type="text"
+                  value={workspaceName}
+                  onChange={(e) => setWorkspaceName(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-[#111111] border border-neutral-800 rounded-xl text-xs text-white focus:border-[#ab1f09] outline-none"
+                />
+              </div>
+
+              <div className="space-y-2 border-t border-neutral-800 pt-4">
+                <label className="block text-xs font-mono text-neutral-400 uppercase mb-1.5">Restrict Invites to Domain</label>
+                <input
+                  type="text"
+                  value={restrictDomain}
+                  onChange={(e) => setRestrictDomain(e.target.value)}
+                  placeholder="e.g. company.com (leave blank to allow any email)"
+                  className="w-full px-4 py-2.5 bg-[#111111] border border-neutral-800 rounded-xl text-xs text-white focus:border-[#ab1f09] outline-none"
+                />
+              </div>
+
+              <div className="flex items-center justify-between border-t border-neutral-800 pt-4">
+                <div>
+                  <h4 className="text-xs font-semibold text-white">Manage Team</h4>
+                  <p className="text-[11px] text-neutral-500">Invite teammates and adjust access roles</p>
+                </div>
+                <button
+                  onClick={() => setShowMembersModal(true)}
+                  className="px-4 py-2 bg-neutral-900 border border-neutral-800 hover:border-[#ab1f09] text-white text-xs font-mono rounded-xl cursor-pointer"
+                >
+                  Open →
+                </button>
+              </div>
+            </div>
+
+            {/* Payments & Payouts */}
+            <div className="p-6 sm:p-8 rounded-2xl bg-[#0d0d0d] border border-neutral-800 space-y-6">
+              <h3 className="text-sm font-mono text-[#fff7d3] uppercase">Payments &amp; Payouts</h3>
+
               <div className="flex items-center justify-between">
                 <div>
                   <h4 className="text-xs font-semibold text-white">Default Currency</h4>
@@ -1008,6 +1111,111 @@ const [isResizing, setIsResizing] = useState(false);
                   <option value="GBP">GBP (£)</option>
                   <option value="NGN">NGN (₦)</option>
                 </select>
+              </div>
+
+              <div className="flex items-center justify-between border-t border-neutral-800 pt-4">
+                <div>
+                  <h4 className="text-xs font-semibold text-white">Payout Method</h4>
+                  <p className="text-[11px] text-neutral-500">Where Paid Voting revenue gets sent</p>
+                </div>
+                <select
+                  value={payoutMethod}
+                  onChange={(e) => setPayoutMethod(e.target.value)}
+                  className="px-3 py-1.5 bg-[#111111] border border-neutral-800 rounded-lg text-xs font-mono text-white outline-none cursor-pointer"
+                >
+                  <option value="Bank Transfer">Bank Transfer</option>
+                  <option value="PayPal">PayPal</option>
+                  <option value="Stripe">Stripe</option>
+                </select>
+              </div>
+
+              <div className="flex items-center justify-between border-t border-neutral-800 pt-4">
+                <div>
+                  <h4 className="text-xs font-semibold text-white">Platform Fee</h4>
+                  <p className="text-[11px] text-neutral-500">Percentage taken from each paid vote</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    min={0}
+                    max={100}
+                    value={platformFee}
+                    onChange={(e) => setPlatformFee(Number(e.target.value))}
+                    className="w-16 px-3 py-1.5 bg-[#111111] border border-neutral-800 rounded-lg text-xs font-mono text-white outline-none text-right"
+                  />
+                  <span className="text-xs font-mono text-neutral-500">%</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Rack Defaults */}
+            <div className="p-6 sm:p-8 rounded-2xl bg-[#0d0d0d] border border-neutral-800 space-y-6">
+              <h3 className="text-sm font-mono text-[#fff7d3] uppercase">Rack Defaults</h3>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-xs font-semibold text-white">Default Visibility</h4>
+                  <p className="text-[11px] text-neutral-500">Status applied when you create a new rack</p>
+                </div>
+                <select
+                  value={defaultVisibility}
+                  onChange={(e) => setDefaultVisibility(e.target.value as "draft" | "published")}
+                  className="px-3 py-1.5 bg-[#111111] border border-neutral-800 rounded-lg text-xs font-mono text-white outline-none cursor-pointer"
+                >
+                  <option value="draft">Draft</option>
+                  <option value="published">Published</option>
+                </select>
+              </div>
+
+              <div className="flex items-center justify-between border-t border-neutral-800 pt-4">
+                <div>
+                  <h4 className="text-xs font-semibold text-white">Default Voting Type</h4>
+                  <p className="text-[11px] text-neutral-500">Whether new racks charge for votes by default</p>
+                </div>
+                <select
+                  value={defaultVotingType}
+                  onChange={(e) => setDefaultVotingType(e.target.value as "free" | "paid")}
+                  className="px-3 py-1.5 bg-[#111111] border border-neutral-800 rounded-lg text-xs font-mono text-white outline-none cursor-pointer"
+                >
+                  <option value="free">Free</option>
+                  <option value="paid">Paid</option>
+                </select>
+              </div>
+
+              <div className="flex items-center justify-between border-t border-neutral-800 pt-4">
+                <div>
+                  <h4 className="text-xs font-semibold text-white">Auto-Close Racks</h4>
+                  <p className="text-[11px] text-neutral-500">Automatically close a rack after this many days (0 = never)</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    min={0}
+                    value={autoCloseDays}
+                    onChange={(e) => setAutoCloseDays(Number(e.target.value))}
+                    className="w-16 px-3 py-1.5 bg-[#111111] border border-neutral-800 rounded-lg text-xs font-mono text-white outline-none text-right"
+                  />
+                  <span className="text-xs font-mono text-neutral-500">days</span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between border-t border-neutral-800 pt-4">
+                <div>
+                  <h4 className="text-xs font-semibold text-white">Require Email to Submit</h4>
+                  <p className="text-[11px] text-neutral-500">Respondents must enter an email before submitting</p>
+                </div>
+                <button
+                  onClick={() => setRequireEmailToSubmit(!requireEmailToSubmit)}
+                  className={`w-8 h-4.5 flex items-center rounded-full p-0.5 transition-colors cursor-pointer ${
+                    requireEmailToSubmit ? "bg-[#ab1f09]" : "bg-neutral-800"
+                  }`}
+                >
+                  <div
+                    className={`bg-white w-3.5 h-3.5 rounded-full shadow transform transition-transform ${
+                      requireEmailToSubmit ? "translate-x-3.5" : "translate-x-0"
+                    }`}
+                  />
+                </button>
               </div>
 
               <div className="flex items-center justify-between border-t border-neutral-800 pt-4">
@@ -1028,7 +1236,99 @@ const [isResizing, setIsResizing] = useState(false);
                   />
                 </button>
               </div>
+            </div>
 
+            {/* Notifications */}
+            <div className="p-6 sm:p-8 rounded-2xl bg-[#0d0d0d] border border-neutral-800 space-y-6">
+              <h3 className="text-sm font-mono text-[#fff7d3] uppercase">Notifications</h3>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-xs font-semibold text-white">New Submission Emails</h4>
+                  <p className="text-[11px] text-neutral-500">Get emailed every time a rack receives a response</p>
+                </div>
+                <button
+                  onClick={() => setNotifyOnSubmission(!notifyOnSubmission)}
+                  className={`w-8 h-4.5 flex items-center rounded-full p-0.5 transition-colors cursor-pointer ${
+                    notifyOnSubmission ? "bg-[#ab1f09]" : "bg-neutral-800"
+                  }`}
+                >
+                  <div
+                    className={`bg-white w-3.5 h-3.5 rounded-full shadow transform transition-transform ${
+                      notifyOnSubmission ? "translate-x-3.5" : "translate-x-0"
+                    }`}
+                  />
+                </button>
+              </div>
+
+              <div className="flex items-center justify-between border-t border-neutral-800 pt-4">
+                <div>
+                  <h4 className="text-xs font-semibold text-white">Rack Closed Emails</h4>
+                  <p className="text-[11px] text-neutral-500">Get notified when one of your racks closes</p>
+                </div>
+                <button
+                  onClick={() => setNotifyOnClose(!notifyOnClose)}
+                  className={`w-8 h-4.5 flex items-center rounded-full p-0.5 transition-colors cursor-pointer ${
+                    notifyOnClose ? "bg-[#ab1f09]" : "bg-neutral-800"
+                  }`}
+                >
+                  <div
+                    className={`bg-white w-3.5 h-3.5 rounded-full shadow transform transition-transform ${
+                      notifyOnClose ? "translate-x-3.5" : "translate-x-0"
+                    }`}
+                  />
+                </button>
+              </div>
+
+              <div className="flex items-center justify-between border-t border-neutral-800 pt-4">
+                <div>
+                  <h4 className="text-xs font-semibold text-white">Weekly Summary</h4>
+                  <p className="text-[11px] text-neutral-500">A digest of submissions and revenue every Monday</p>
+                </div>
+                <button
+                  onClick={() => setWeeklySummary(!weeklySummary)}
+                  className={`w-8 h-4.5 flex items-center rounded-full p-0.5 transition-colors cursor-pointer ${
+                    weeklySummary ? "bg-[#ab1f09]" : "bg-neutral-800"
+                  }`}
+                >
+                  <div
+                    className={`bg-white w-3.5 h-3.5 rounded-full shadow transform transition-transform ${
+                      weeklySummary ? "translate-x-3.5" : "translate-x-0"
+                    }`}
+                  />
+                </button>
+              </div>
+            </div>
+
+            {/* Danger Zone */}
+            <div className="p-6 sm:p-8 rounded-2xl bg-[#0d0d0d] border border-red-900/40 space-y-6">
+              <h3 className="text-sm font-mono text-red-400 uppercase">Danger Zone</h3>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-xs font-semibold text-white">Export Workspace Data</h4>
+                  <p className="text-[11px] text-neutral-500">Download every rack and member as a JSON file</p>
+                </div>
+                <button
+                  onClick={handleExportData}
+                  className="px-4 py-2 bg-neutral-900 border border-neutral-800 hover:border-[#ab1f09] text-white text-xs font-mono rounded-xl cursor-pointer"
+                >
+                  Export →
+                </button>
+              </div>
+
+              <div className="flex items-center justify-between border-t border-red-900/40 pt-4">
+                <div>
+                  <h4 className="text-xs font-semibold text-white">Delete Workspace</h4>
+                  <p className="text-[11px] text-neutral-500">Permanently delete all racks. This cannot be undone</p>
+                </div>
+                <button
+                  onClick={handleDeleteWorkspace}
+                  className="px-4 py-2 bg-red-900/20 border border-red-900/50 hover:bg-red-900/40 text-red-400 text-xs font-mono rounded-xl cursor-pointer"
+                >
+                  Delete
+                </button>
+              </div>
             </div>
           </div>
         )}
