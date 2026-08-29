@@ -89,6 +89,8 @@ function FormBuilderSaaS() {
   const [copiedLink, setCopiedLink] = useState(false);
   const [savedNotice, setSavedNotice] = useState(false);
   const [formLoaded, setFormLoaded] = useState(false);
+  const [creatorEmail, setCreatorEmail] = useState<string>("");
+  const [creatorName, setCreatorName] = useState<string>("");
   const [formNotFound, setFormNotFound] = useState(false);
   const [isNewForm, setIsNewForm] = useState(true);
   const [justPublished, setJustPublished] = useState(false);
@@ -203,6 +205,15 @@ function FormBuilderSaaS() {
     setIsNewForm(true);
     setFormLoaded(true);
   }, [formIdParam, isLiveView]);
+
+  // Load the actual logged in creator's identity for the header pill
+  useEffect(() => {
+    if (isLiveView) return;
+    const savedEmail = localStorage.getItem("rack_user_email");
+    const savedName = localStorage.getItem("rack_user_name");
+    if (savedEmail) setCreatorEmail(savedEmail);
+    setCreatorName(savedName && savedName.trim() !== "" ? savedName : savedEmail ? savedEmail.split("@")[0] : "User");
+  }, [isLiveView]);
   // 2. Auto-Save Draft to Backend
   useEffect(() => {
     if (!formId || isLiveView || !formLoaded) return;
@@ -430,26 +441,26 @@ function FormBuilderSaaS() {
           <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#ab1f09] via-[#fff7d3]/50 to-[#ab1f09] z-10" />
 
           {!formLoaded ? (
-            <div className="text-center py-16">
-              <p className="text-sm font-mono text-neutral-500">Loading form...</p>
-            </div>
+  <div className="text-center py-16 px-6">
+    <p className="text-sm font-mono text-neutral-500">Loading form...</p>
+  </div>
           ) : formNotFound ? (
-            <div className="text-center py-16 space-y-3">
-              <h2 className="text-xl font-bold text-white">Form Not Found</h2>
+  <div className="text-center py-16 px-6 space-y-3">
+    <h2 className="text-xl font-bold text-white">Form Not Found</h2>
               <p className="text-sm text-neutral-400 max-w-md mx-auto">
                 This link doesn't point to a form we can find on this device/browser.
               </p>
             </div>
           ) : status !== "published" || !settings.acceptingResponses ? (
-            <div className="text-center py-16 space-y-3">
-              <h2 className="text-xl font-bold text-white">Not Accepting Responses</h2>
+  <div className="text-center py-16 px-6 space-y-3">
+    <h2 className="text-xl font-bold text-white">Not Accepting Responses</h2>
               <p className="text-sm text-neutral-400 max-w-md mx-auto">
                 This rack is currently {status === "draft" ? "still in draft and hasn't been published yet" : "closed"}.
               </p>
             </div>
-          ) : liveSubmitted ? (
-            <div className="text-center py-12 space-y-4">
-              <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center mx-auto">
+) : liveSubmitted ? (
+  <div className="text-center py-12 px-6 space-y-4">
+    <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center mx-auto">
                 <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                 </svg>
@@ -458,7 +469,7 @@ function FormBuilderSaaS() {
               <p className="text-sm text-neutral-400 max-w-md mx-auto">{settings.confirmationMessage}</p>
             </div>
           ) : (
-            <form onSubmit={handleLiveSubmit} className="space-y-8">
+            <form onSubmit={handleLiveSubmit} className="space-y-8 p-6 sm:p-10">
               <div className="space-y-4 border-b border-neutral-800 pb-6 -mx-6 sm:-mx-10 -mt-6 sm:-mt-10">
                 {settings.coverImage && (
                   <div className="w-full max-h-[320px] overflow-hidden">
@@ -585,8 +596,8 @@ function FormBuilderSaaS() {
                           ))}
                         </div>
 
-                        <div className="flex items-center justify-between p-3 bg-[#0d0d0d] border border-neutral-800 rounded-xl">
-                          <span className="text-xs font-mono text-neutral-400">Votes Quantity:</span>
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 bg-[#0d0d0d] border border-neutral-800 rounded-xl">
+  <span className="text-xs font-mono text-neutral-400">Votes Quantity:</span>
                           <div className="flex items-center gap-3">
                             <input
                               type="number"
@@ -705,11 +716,11 @@ function FormBuilderSaaS() {
           {/* User Profile Pill */}
           <div className="flex items-center gap-2.5 pl-3 border-l border-neutral-800">
             <div className="text-right hidden sm:block font-mono">
-              <div className="text-xs font-semibold text-white">Alex Robert</div>
-              <div className="text-[10px] text-neutral-500">alex.cto@gmail.com</div>
+              <div className="text-xs font-semibold text-white capitalize">{creatorName || "User"}</div>
+              <div className="text-[10px] text-neutral-500">{creatorEmail || ""}</div>
             </div>
             <div className="w-8 h-8 rounded-full bg-[#ab1f09] border border-[#ab1f09]/60 flex items-center justify-center font-bold text-xs text-[#fff7d3] font-mono shadow-sm">
-              A
+              {creatorName ? creatorName.charAt(0).toUpperCase() : "U"}
             </div>
           </div>
         </div>
