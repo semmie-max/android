@@ -83,6 +83,7 @@ const [isResizing, setIsResizing] = useState(false);
   const [displayName, setDisplayName] = useState<string>("Alex");
   const [userEmail, setUserEmail] = useState<string>("alex.cto@gmail.com");
   const [userBio, setUserBio] = useState<string>("Lead Workspace Admin");
+  const [avatarUrl, setAvatarUrl] = useState<string>("");
   const [profileSavedNotice, setProfileSavedNotice] = useState(false);
 
   // Forms & Analytics State
@@ -103,11 +104,14 @@ const [isResizing, setIsResizing] = useState(false);
   const [newMemberRole, setNewMemberRole] = useState<"Admin" | "Editor" | "Viewer">("Editor");
 
   // Notifications State
-  const [notifications, setNotifications] = useState([
-    { id: "n_1", title: "New Response Recorded", desc: "Customer Feedback received a submission.", time: "10 mins ago", read: false },
-    { id: "n_2", title: "Contestant Voted", desc: "5 votes received for Contestant A.", time: "1 hour ago", read: false },
-    { id: "n_3", title: "System Ready", desc: "Backend database connected successfully.", time: "Yesterday", read: true },
-  ]);
+  interface NotificationItem {
+    id: string;
+    title: string;
+    desc: string;
+    time: string;
+    read: boolean;
+  }
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
 
   // Security & Settings State
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
@@ -169,7 +173,10 @@ const [isResizing, setIsResizing] = useState(false);
       setDisplayName(savedEmail.split("@")[0]);
     }
 
-    if (savedEmail) setUserEmail(savedEmail);
+    if (savedEmail) setUserEmail(savedEmail);    if (savedEmail) setUserEmail(savedEmail);
+
+    const savedAvatar = localStorage.getItem("rack_user_avatar");
+    if (savedAvatar) setAvatarUrl(savedAvatar);
 
     fetch(`${API_BASE}/api/forms`, {
       headers: { Authorization: `Bearer ${token}` },
@@ -180,6 +187,29 @@ const [isResizing, setIsResizing] = useState(false);
       })
       .catch((err) => console.error("Failed to load racks", err));
   }, [router]);
+
+  // Real-time-ish notifications: fetch now, then poll every 15s
+  useEffect(() => {
+    const token = localStorage.getItem("rack_token");
+    if (!token) return;
+
+    const loadNotifications = () => {
+      fetch(`${API_BASE}/api/notifications`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.notifications) {
+            setNotifications(data.notifications.map((n: any) => ({ ...n, time: timeAgo(n.time) })));
+          }
+        })
+        .catch((err) => console.error("Failed to load notifications", err));
+    };
+
+    loadNotifications();
+    const interval = setInterval(loadNotifications, 15000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("rack_token");
@@ -220,6 +250,23 @@ const [isResizing, setIsResizing] = useState(false);
     setTimeout(() => setProfileSavedNotice(false), 2000);
   };
 
+  // Upload / replace the profile picture
+  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      alert("Please choose an image under 2MB.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result as string;
+      setAvatarUrl(dataUrl);
+      localStorage.setItem("rack_user_avatar", dataUrl);
+    };
+    reader.readAsDataURL(file);
+  };
+
   // Add Member
   const handleAddMember = (e: React.FormEvent) => {
     e.preventDefault();
@@ -237,6 +284,20 @@ const [isResizing, setIsResizing] = useState(false);
   const handleRemoveMember = (id: string) => {
     if (members.length <= 1) return;
     setMembers(members.filter((m) => m.id !== id));
+  };
+
+  // Turn a raw timestamp into "5 mins ago" style text
+  const timeAgo = (dateStr: string) => {
+    const then = new Date(dateStr).getTime();
+    const now = Date.now();
+    const mins = Math.floor((now - then) / 60000);
+    if (mins < 1) return "Just now";
+    if (mins < 60) return `${mins} min${mins !== 1 ? "s" : ""} ago`;
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return `${hours} hour${hours !== 1 ? "s" : ""} ago`;
+    const days = Math.floor(hours / 24);
+    if (days === 1) return "Yesterday";
+    return `${days} days ago`;
   };
 
   // Export all workspace data as a downloadable JSON file
@@ -448,8 +509,12 @@ const [isResizing, setIsResizing] = useState(false);
             onClick={() => setActiveTab("profile")}
             className="flex items-center gap-3 p-2 rounded-xl hover:bg-neutral-900/60 transition-colors cursor-pointer"
           >
-            <div className="w-9 h-9 rounded-xl bg-neutral-900 border border-neutral-700 flex items-center justify-center font-mono font-bold text-[#fff7d3] text-sm uppercase shadow-inner">
-              {displayName ? displayName.charAt(0).toUpperCase() : "A"}
+            <div className="w-9 h-9 rounded-xl bg-neutral-900 border border-neutral-700 flex items-center justify-center font-mono font-bold text-[#fff7d3] text-sm uppercase shadow-inner overflow-hidden">
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
+              ) : (
+                displayName ? displayName.charAt(0).toUpperCase() : "A"
+              )}
             </div>
             <div className="overflow-hidden">
               <h3 className="text-xs font-semibold text-white capitalize truncate">{displayName}</h3>
@@ -1041,9 +1106,17 @@ const [isResizing, setIsResizing] = useState(false);
             <form onSubmit={handleSaveProfile} className="p-6 sm:p-8 rounded-2xl bg-[#0d0d0d] border border-neutral-800 space-y-6">
               
               <div className="flex items-center gap-4">
-                <div className="w-16 h-16 rounded-2xl bg-[#ab1f09] flex items-center justify-center font-mono font-bold text-xl text-[#fff7d3] shadow-lg shadow-[#ab1f09]/20">
-                  {displayName.charAt(0).toUpperCase()}
-                </div>
+                <label className="relative w-16 h-16 rounded-2xl bg-[#ab1f09] flex items-center justify-center font-mono font-bold text-xl text-[#fff7d3] shadow-lg shadow-[#ab1f09]/20 overflow-hidden cursor-pointer group">
+                  {avatarUrl ? (
+                    <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
+                  ) : (
+                    displayName.charAt(0).toUpperCase()
+                  )}
+                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-[9px] font-mono uppercase">
+                    Change
+                  </div>
+                  <input type="file" accept="image/*" onChange={handleAvatarUpload} className="hidden" />
+                </label>
                 <div>
                   <h3 className="text-sm font-semibold text-white capitalize">{displayName}</h3>
                   <p className="text-xs font-mono text-neutral-500">{userEmail}</p>
@@ -1399,7 +1472,14 @@ const [isResizing, setIsResizing] = useState(false);
                 <p className="text-xs text-neutral-400 mt-1">Real-time alerts for form activity and submissions.</p>
               </div>
               <button
-                onClick={() => setNotifications(notifications.map((n) => ({ ...n, read: true })))}
+                onClick={() => {
+                  const token = localStorage.getItem("rack_token");
+                  setNotifications(notifications.map((n) => ({ ...n, read: true })));
+                  fetch(`${API_BASE}/api/notifications/read-all`, {
+                    method: "PATCH",
+                    headers: { Authorization: `Bearer ${token}` },
+                  }).catch((err) => console.error("Failed to mark notifications read", err));
+                }}
                 className="text-xs font-mono text-[#ab1f09] hover:underline cursor-pointer"
               >
                 Mark All as Read
@@ -1407,6 +1487,11 @@ const [isResizing, setIsResizing] = useState(false);
             </div>
 
             <div className="space-y-3">
+              {notifications.length === 0 && (
+                <div className="p-10 text-center rounded-2xl border border-neutral-800 bg-[#0d0d0d] text-sm text-neutral-500 font-mono">
+                  No notifications yet.
+                </div>
+              )}
               {notifications.map((notif) => (
                 <div
                   key={notif.id}

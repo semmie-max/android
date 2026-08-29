@@ -92,6 +92,7 @@ function FormBuilderSaaS() {
   const [formLoaded, setFormLoaded] = useState(false);
   const [creatorEmail, setCreatorEmail] = useState<string>("");
   const [creatorName, setCreatorName] = useState<string>("");
+  const [creatorAvatar, setCreatorAvatar] = useState<string>("");
   const [formNotFound, setFormNotFound] = useState(false);
   const [isNewForm, setIsNewForm] = useState(true);
   const [justPublished, setJustPublished] = useState(false);
@@ -239,7 +240,9 @@ function FormBuilderSaaS() {
     if (isLiveView) return;
     const savedEmail = localStorage.getItem("rack_user_email");
     const savedName = localStorage.getItem("rack_user_name");
+    const savedAvatar = localStorage.getItem("rack_user_avatar");
     if (savedEmail) setCreatorEmail(savedEmail);
+    if (savedAvatar) setCreatorAvatar(savedAvatar);
     setCreatorName(savedName && savedName.trim() !== "" ? savedName : savedEmail ? savedEmail.split("@")[0] : "User");
   }, [isLiveView]);
   // 2. Auto-Save Draft to Backend
@@ -773,8 +776,14 @@ function FormBuilderSaaS() {
               <div className="text-xs font-semibold text-white capitalize">{creatorName || "User"}</div>
               <div className="text-[10px] text-neutral-500">{creatorEmail || ""}</div>
             </div>
-            <div className="w-8 h-8 rounded-full bg-[#ab1f09] border border-[#ab1f09]/60 flex items-center justify-center font-bold text-xs text-[#fff7d3] font-mono shadow-sm">
-              {creatorName ? creatorName.charAt(0).toUpperCase() : "U"}
+            <div className="w-8 h-8 rounded-full bg-[#ab1f09] border border-[#ab1f09]/60 flex items-center justify-center font-bold text-xs text-[#fff7d3] font-mono shadow-sm overflow-hidden">
+              {creatorAvatar ? (
+                <img src={creatorAvatar} alt="Profile" className="w-full h-full object-cover" />
+              ) : creatorName ? (
+                creatorName.charAt(0).toUpperCase()
+              ) : (
+                "U"
+              )}
             </div>
           </div>
         </div>
@@ -1077,6 +1086,28 @@ function FormBuilderSaaS() {
                     className="w-full text-base font-semibold text-white bg-transparent border-b border-neutral-800 focus:border-[#ab1f09] outline-none pb-1"
                     placeholder="Enter question title..."
                   />
+
+                  {/* Required Toggle */}
+                  <div className="flex items-center justify-between font-mono">
+                    <span className="text-[11px] text-neutral-400 uppercase tracking-wider">Compulsory</span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const updated = [...questions];
+                        updated[qIdx].required = !updated[qIdx].required;
+                        setQuestions(updated);
+                      }}
+                      className={`w-8 h-4.5 flex items-center rounded-full p-0.5 transition-colors cursor-pointer ${
+                        q.required ? "bg-[#ab1f09]" : "bg-neutral-800"
+                      }`}
+                    >
+                      <div
+                        className={`bg-white w-3.5 h-3.5 rounded-full shadow transform transition-transform ${
+                          q.required ? "translate-x-3.5" : "translate-x-0"
+                        }`}
+                      />
+                    </button>
+                  </div>
 
                   {/* Body according to type */}
                   {q.type === "short_answer" && (
