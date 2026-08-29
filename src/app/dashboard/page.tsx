@@ -82,7 +82,7 @@ const [isResizing, setIsResizing] = useState(false);
   // User State
   const [displayName, setDisplayName] = useState<string>("Alex");
   const [userEmail, setUserEmail] = useState<string>("alex.cto@gmail.com");
-  const [userBio, setUserBio] = useState<string>("Lead Workspace Admin");
+  const [userBio, setUserBio] = useState<string>("");
   const [avatarUrl, setAvatarUrl] = useState<string>("");
   const [profileSavedNotice, setProfileSavedNotice] = useState(false);
 
@@ -167,20 +167,22 @@ const [isResizing, setIsResizing] = useState(false);
       setDisplayName(savedEmail.split("@")[0]);
     }
 
-    if (savedEmail) {
-      setUserEmail(savedEmail);
-      setMembers([
-        {
-          id: "m_self",
-          name: savedName && savedName.trim() !== "" ? savedName : savedEmail.split("@")[0],
-          email: savedEmail,
-          role: "Admin",
-        },
-      ]);
-    }    if (savedEmail) setUserEmail(savedEmail);
+    if (savedEmail) setUserEmail(savedEmail);
+
+    fetch(`${API_BASE}/api/members`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.members) setMembers(data.members);
+      })
+      .catch((err) => console.error("Failed to load members", err));    if (savedEmail) setUserEmail(savedEmail);
 
     const savedAvatar = localStorage.getItem("rack_user_avatar");
     if (savedAvatar) setAvatarUrl(savedAvatar);
+
+    const savedBio = localStorage.getItem("rack_user_bio");
+    setUserBio(savedBio && savedBio.trim() !== "" ? savedBio : "Lead Workspace Admin");
 
     fetch(`${API_BASE}/api/forms`, {
       headers: { Authorization: `Bearer ${token}` },
@@ -250,6 +252,7 @@ const [isResizing, setIsResizing] = useState(false);
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
     localStorage.setItem("rack_user_name", displayName);
+    localStorage.setItem("rack_user_bio", userBio);
     setProfileSavedNotice(true);
     setTimeout(() => setProfileSavedNotice(false), 2000);
   };
@@ -277,25 +280,29 @@ const [isResizing, setIsResizing] = useState(false);
     if (!newMemberEmail) return;
 
     const token = localStorage.getItem("rack_token");
-    const newM: Member = {
-      id: "m_" + Date.now(),
-      name: newMemberEmail.split("@")[0],
-      email: newMemberEmail,
-      role: newMemberRole,
-    };
-    setMembers([...members, newM]);
-    setNewMemberEmail("");
-
     fetch(`${API_BASE}/api/invite`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ email: newM.email, role: newM.role }),
-    }).catch((err) => console.error("Failed to send invite", err));
+      body: JSON.stringify({ email: newMemberEmail, role: newMemberRole }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.id) {
+          setMembers([...members, { id: data.id, name: newMemberEmail.split("@")[0], email: newMemberEmail, role: newMemberRole }]);
+          setNewMemberEmail("");
+        }
+      })
+      .catch((err) => console.error("Failed to send invite", err));
   };
 
   const handleRemoveMember = (id: string) => {
-    if (members.length <= 1) return;
+    if (members.length <= 1 || id === "m_self") return;
+    const token = localStorage.getItem("rack_token");
     setMembers(members.filter((m) => m.id !== id));
+    fetch(`${API_BASE}/api/members/${id}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    }).catch((err) => console.error("Failed to remove member", err));
   };
 
   // Turn a raw timestamp into "5 mins ago" style text
