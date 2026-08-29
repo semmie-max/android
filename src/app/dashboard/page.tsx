@@ -96,10 +96,7 @@ const [isResizing, setIsResizing] = useState(false);
 
   // Members Modal State
   const [showMembersModal, setShowMembersModal] = useState(false);
-  const [members, setMembers] = useState<Member[]>([
-    { id: "m_1", name: "Alex Robert", email: "alex.cto@gmail.com", role: "Admin" },
-    { id: "m_2", name: "Sarah Connor", email: "sarah@rack.io", role: "Editor" },
-  ]);
+  const [members, setMembers] = useState<Member[]>([]);
   const [newMemberEmail, setNewMemberEmail] = useState("");
   const [newMemberRole, setNewMemberRole] = useState<"Admin" | "Editor" | "Viewer">("Editor");
 
@@ -115,12 +112,9 @@ const [isResizing, setIsResizing] = useState(false);
 
   // Security & Settings State
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
-  const [defaultCurrency, setDefaultCurrency] = useState("USD");
   const [autoSaveEnabled, setAutoSaveEnabled] = useState(true);
 
-  // Payments & Payouts
-  const [payoutMethod, setPayoutMethod] = useState("Bank Transfer");
-  const [platformFee, setPlatformFee] = useState(5);
+
 
   // Workspace
   const [workspaceName, setWorkspaceName] = useState("My Workspace");
@@ -173,7 +167,17 @@ const [isResizing, setIsResizing] = useState(false);
       setDisplayName(savedEmail.split("@")[0]);
     }
 
-    if (savedEmail) setUserEmail(savedEmail);    if (savedEmail) setUserEmail(savedEmail);
+    if (savedEmail) {
+      setUserEmail(savedEmail);
+      setMembers([
+        {
+          id: "m_self",
+          name: savedName && savedName.trim() !== "" ? savedName : savedEmail.split("@")[0],
+          email: savedEmail,
+          role: "Admin",
+        },
+      ]);
+    }    if (savedEmail) setUserEmail(savedEmail);
 
     const savedAvatar = localStorage.getItem("rack_user_avatar");
     if (savedAvatar) setAvatarUrl(savedAvatar);
@@ -271,6 +275,8 @@ const [isResizing, setIsResizing] = useState(false);
   const handleAddMember = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMemberEmail) return;
+
+    const token = localStorage.getItem("rack_token");
     const newM: Member = {
       id: "m_" + Date.now(),
       name: newMemberEmail.split("@")[0],
@@ -279,6 +285,12 @@ const [isResizing, setIsResizing] = useState(false);
     };
     setMembers([...members, newM]);
     setNewMemberEmail("");
+
+    fetch(`${API_BASE}/api/invite`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ email: newM.email, role: newM.role }),
+    }).catch((err) => console.error("Failed to send invite", err));
   };
 
   const handleRemoveMember = (id: string) => {
@@ -1220,61 +1232,7 @@ const [isResizing, setIsResizing] = useState(false);
               </div>
             </div>
 
-            {/* Payments & Payouts */}
-            <div className="p-6 sm:p-8 rounded-2xl bg-[#0d0d0d] border border-neutral-800 space-y-6">
-              <h3 className="text-sm font-mono text-[#fff7d3] uppercase">Payments &amp; Payouts</h3>
 
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="text-xs font-semibold text-white">Default Currency</h4>
-                  <p className="text-[11px] text-neutral-500">Used for Paid Voting contestant ballots</p>
-                </div>
-                <select
-                  value={defaultCurrency}
-                  onChange={(e) => setDefaultCurrency(e.target.value)}
-                  className="px-3 py-1.5 bg-[#111111] border border-neutral-800 rounded-lg text-xs font-mono text-white outline-none cursor-pointer"
-                >
-                  <option value="USD">USD ($)</option>
-                  <option value="EUR">EUR (€)</option>
-                  <option value="GBP">GBP (£)</option>
-                  <option value="NGN">NGN (₦)</option>
-                </select>
-              </div>
-
-              <div className="flex items-center justify-between border-t border-neutral-800 pt-4">
-                <div>
-                  <h4 className="text-xs font-semibold text-white">Payout Method</h4>
-                  <p className="text-[11px] text-neutral-500">Where Paid Voting revenue gets sent</p>
-                </div>
-                <select
-                  value={payoutMethod}
-                  onChange={(e) => setPayoutMethod(e.target.value)}
-                  className="px-3 py-1.5 bg-[#111111] border border-neutral-800 rounded-lg text-xs font-mono text-white outline-none cursor-pointer"
-                >
-                  <option value="Bank Transfer">Bank Transfer</option>
-                  <option value="PayPal">PayPal</option>
-                  <option value="Stripe">Stripe</option>
-                </select>
-              </div>
-
-              <div className="flex items-center justify-between border-t border-neutral-800 pt-4">
-                <div>
-                  <h4 className="text-xs font-semibold text-white">Platform Fee</h4>
-                  <p className="text-[11px] text-neutral-500">Percentage taken from each paid vote</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="number"
-                    min={0}
-                    max={100}
-                    value={platformFee}
-                    onChange={(e) => setPlatformFee(Number(e.target.value))}
-                    className="w-16 px-3 py-1.5 bg-[#111111] border border-neutral-800 rounded-lg text-xs font-mono text-white outline-none text-right"
-                  />
-                  <span className="text-xs font-mono text-neutral-500">%</span>
-                </div>
-              </div>
-            </div>
 
             {/* Rack Defaults */}
             <div className="p-6 sm:p-8 rounded-2xl bg-[#0d0d0d] border border-neutral-800 space-y-6">
