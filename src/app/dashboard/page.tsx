@@ -87,9 +87,10 @@ const [isResizing, setIsResizing] = useState(false);
   // Forms & Analytics State
   const [forms, setForms] = useState<RackForm[]>([]);
   const [selectedFormForAnalytics, setSelectedFormForAnalytics] = useState<RackForm | null>(null);
-    const [rackFilter, setRackFilter] = useState<"all" | "published" | "draft">("all");
+   const [rackFilter, setRackFilter] = useState<"all" | "published" | "draft">("all");
   const [rackSearch, setRackSearch] = useState("");
   const [timeFilter, setTimeFilter] = useState("Last month");
+  const [copiedFormId, setCopiedFormId] = useState<string | null>(null);
 
   // Members Modal State
   const [showMembersModal, setShowMembersModal] = useState(false);
@@ -196,6 +197,15 @@ const [isResizing, setIsResizing] = useState(false);
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     }).catch((err) => console.error("Failed to delete rack", err));
+  };
+
+  // Copy a rack's live share link
+  const handleCopyShareLink = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const url = `${window.location.origin}/form?id=${id}&view=live`;
+    navigator.clipboard.writeText(url);
+    setCopiedFormId(id);
+    setTimeout(() => setCopiedFormId(null), 2000);
   };
 
   // Save Profile
@@ -786,12 +796,22 @@ const [isResizing, setIsResizing] = useState(false);
                   
                   <div className="pt-3 border-t border-neutral-800 flex items-center justify-between text-xs font-mono">
                     <span className="text-neutral-500">{form.responses?.length || 0} Responses</span>
-                    <button
-                      onClick={() => router.push(`/form?id=${form.id}`)}
-                      className="text-[#ab1f09] hover:underline cursor-pointer"
-                    >
-                      Open Studio →
-                    </button>
+                    <div className="flex items-center gap-3">
+                      {form.status === "published" && (
+                        <button
+                          onClick={(e) => handleCopyShareLink(form.id, e)}
+                          className="text-neutral-400 hover:text-[#fff7d3] cursor-pointer"
+                        >
+                          {copiedFormId === form.id ? "Copied!" : "Share"}
+                        </button>
+                      )}
+                      <button
+                        onClick={() => router.push(`/form?id=${form.id}`)}
+                        className="text-[#ab1f09] hover:underline cursor-pointer"
+                      >
+                        Open Studio →
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}

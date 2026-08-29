@@ -90,6 +90,7 @@ function FormBuilderSaaS() {
   const [formLoaded, setFormLoaded] = useState(false);
   const [formNotFound, setFormNotFound] = useState(false);
   const [isNewForm, setIsNewForm] = useState(true);
+  const [justPublished, setJustPublished] = useState(false);
 
   // Form State
   const [formId, setFormId] = useState<string>("");
@@ -355,6 +356,40 @@ function FormBuilderSaaS() {
       .catch((err) => console.error("Failed to submit response", err));
   };
 
+  const handlePublish = async () => {
+    const token = localStorage.getItem("rack_token");
+    const payload = {
+      id: formId,
+      title: title || "Untitled Form",
+      description: description || "",
+      status: "published",
+      settings,
+      questions,
+    };
+    try {
+      const request = isNewForm
+        ? fetch(`${API_BASE}/api/forms`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+            body: JSON.stringify(payload),
+          })
+        : fetch(`${API_BASE}/api/forms/${formId}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+            body: JSON.stringify(payload),
+          });
+      await request;
+      setStatus("published");
+      setIsNewForm(false);
+      setJustPublished(true);
+      setTimeout(() => {
+        router.push("/dashboard");
+      }, 1800);
+    } catch (err) {
+      console.error("Failed to publish rack", err);
+    }
+  };
+
   const livePublicUrl = typeof window !== "undefined" ? `${window.location.origin}/form?id=${formId}&view=live` : "";
 
   const handleCopyLink = () => {
@@ -562,7 +597,19 @@ function FormBuilderSaaS() {
   // =========================================================================
   return (
     <div className="min-h-screen w-full bg-[#050505] text-white flex flex-col font-sans selection:bg-[#ab1f09] selection:text-[#fff7d3]">
-      
+
+      {justPublished && (
+        <div className="fixed inset-0 bg-[#050505] z-[100] flex flex-col items-center justify-center gap-4">
+          <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center">
+            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <h2 className="text-xl font-bold text-white">Rack Published</h2>
+          <p className="text-xs font-mono text-neutral-500">Taking you to your dashboard...</p>
+        </div>
+      )}
+
       {/* ------------------------------------------------------------- */}
       {/* TOP NAVIGATION BAR */}
       {/* ------------------------------------------------------------- */}
@@ -616,15 +663,17 @@ function FormBuilderSaaS() {
 
         {/* Right: User Profile & Link Action */}
         <div className="flex items-center gap-3">
-          <button
-            onClick={handleCopyLink}
-            className="px-3 py-1.5 rounded-xl bg-[#050505] border border-neutral-800 text-[#fff7d3] hover:text-white text-xs font-mono flex items-center gap-1.5 cursor-pointer"
-          >
-            <svg className="w-3.5 h-3.5 text-[#ab1f09]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-            </svg>
-            <span className="hidden sm:inline">{copiedLink ? "COPIED!" : "SHARE LINK"}</span>
-          </button>
+          {status === "published" && (
+            <button
+              onClick={handleCopyLink}
+              className="px-3 py-1.5 rounded-xl bg-[#050505] border border-neutral-800 text-[#fff7d3] hover:text-white text-xs font-mono flex items-center gap-1.5 cursor-pointer"
+            >
+              <svg className="w-3.5 h-3.5 text-[#ab1f09]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+              </svg>
+              <span className="hidden sm:inline">{copiedLink ? "COPIED!" : "SHARE LINK"}</span>
+            </button>
+          )}
 
           {/* User Profile Pill */}
           <div className="flex items-center gap-2.5 pl-3 border-l border-neutral-800">
@@ -996,7 +1045,13 @@ function FormBuilderSaaS() {
                 Save
               </button>
               <button
-                onClick={() => setStatus(status === "published" ? "closed" : "published")}
+                onClick={() => {
+                  if (status === "published") {
+                    setStatus("closed");
+                  } else {
+                    handlePublish();
+                  }
+                }}
                 className="py-2 bg-[#050505] border border-neutral-700 hover:border-[#ab1f09] text-white font-medium text-xs rounded-xl transition-all cursor-pointer"
               >
                 {status === "published" ? "Published" : "Publish"}
