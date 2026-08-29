@@ -20,6 +20,7 @@ import {
 } from "react-icons/fi";
 import GlobeStudy from "@/components/originkit/ui/globe-study";
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 interface Candidate {
   id: string;
@@ -167,8 +168,14 @@ const [isResizing, setIsResizing] = useState(false);
 
     if (savedEmail) setUserEmail(savedEmail);
 
-    const storedForms: RackForm[] = JSON.parse(localStorage.getItem("rack_forms") || "[]");
-    setForms(storedForms);
+    fetch(`${API_BASE}/api/forms`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.forms) setForms(data.forms);
+      })
+      .catch((err) => console.error("Failed to load racks", err));
   }, [router]);
 
   const handleLogout = () => {
@@ -181,9 +188,13 @@ const [isResizing, setIsResizing] = useState(false);
   // Delete Form
   const handleDeleteForm = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
+    const token = localStorage.getItem("rack_token");
     const updated = forms.filter((f) => f.id !== id);
     setForms(updated);
-    localStorage.setItem("rack_forms", JSON.stringify(updated));
+    fetch(`${API_BASE}/api/forms/${id}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    }).catch((err) => console.error("Failed to delete rack", err));
   };
 
   // Save Profile
@@ -229,7 +240,15 @@ const [isResizing, setIsResizing] = useState(false);
   const handleDeleteWorkspace = () => {
     const confirmed = window.confirm("This will permanently delete all racks in this workspace. This cannot be undone. Continue?");
     if (!confirmed) return;
-    localStorage.setItem("rack_forms", "[]");
+    const token = localStorage.getItem("rack_token");
+    Promise.all(
+      forms.map((f) =>
+        fetch(`${API_BASE}/api/forms/${f.id}`, {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        })
+      )
+    ).catch((err) => console.error("Failed to delete workspace", err));
     setForms([]);
   };
 

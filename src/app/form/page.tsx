@@ -4,6 +4,8 @@ import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
 // --- TYPES ---
 export type ComponentCategory = "content" | "form" | "other";
 
@@ -86,6 +88,7 @@ function FormBuilderSaaS() {
   const [savedNotice, setSavedNotice] = useState(false);
   const [formLoaded, setFormLoaded] = useState(false);
   const [formNotFound, setFormNotFound] = useState(false);
+  const [isNewForm, setIsNewForm] = useState(true);
 
   // Form State
   const [formId, setFormId] = useState<string>("");
@@ -129,32 +132,62 @@ function FormBuilderSaaS() {
   const [liveSelectedCandidate, setLiveSelectedCandidate] = useState<string>("");
   const [liveSubmitted, setLiveSubmitted] = useState(false);
 
-  // 1. Initial Load
-  useEffect(() => {
-    const existingForms: RackForm[] = JSON.parse(localStorage.getItem("rack_forms") || "[]");
 
+    // 1. Initial Load
+  useEffect(() => {
     if (formIdParam) {
-      const found = existingForms.find((f) => f.id === formIdParam);
-      if (found) {
-        setFormId(found.id);
-        setTitle(found.title);
-        setDescription(found.description);
-        setStatus(found.status);
-        setCreatedAt(found.createdAt);
-        setUpdatedAt(found.updatedAt);
-        setSettings(found.settings || settings);
-        setQuestions(found.questions || []);
-        setResponses(found.responses || []);
-        if (found.questions?.length > 0) {
-          setSelectedQuestionId(found.questions[0].id);
-        }
-        setFormLoaded(true);
-        return;
-      } else if (isLiveView) {
-        setFormNotFound(true);
-        setFormLoaded(true);
+      if (isLiveView) {
+        fetch(`${API_BASE}/api/forms/${formIdParam}/public`)
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.found) {
+              setFormId(data.id);
+              setTitle(data.title);
+              setDescription(data.description);
+              setStatus(data.status);
+              setSettings(data.settings || settings);
+              setQuestions(data.questions || []);
+              setIsNewForm(false);
+            } else {
+              setFormNotFound(true);
+            }
+            setFormLoaded(true);
+          })
+          .catch(() => {
+            setFormNotFound(true);
+            setFormLoaded(true);
+          });
         return;
       }
+
+      const token = localStorage.getItem("rack_token");
+      fetch(`${API_BASE}/api/forms/${formIdParam}/edit`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.id) {
+            setFormId(data.id);
+            setTitle(data.title);
+            setDescription(data.description);
+            setStatus(data.status);
+            setCreatedAt(data.createdAt);
+            setUpdatedAt(data.updatedAt);
+            setSettings(data.settings || settings);
+            setQuestions(data.questions || []);
+            setResponses(data.responses || []);
+            if (data.questions?.length > 0) {
+              setSelectedQuestionId(data.questions[0].id);
+            }
+            setIsNewForm(false);
+          }
+          setFormLoaded(true);
+        })
+        .catch((err) => {
+          console.error("Failed to load rack", err);
+          setFormLoaded(true);
+        });
+      return;
     }
 
     const newId = "rack_" + Date.now();
@@ -162,41 +195,48 @@ function FormBuilderSaaS() {
     setFormId(newId);
     setCreatedAt(dateStr);
     setUpdatedAt(new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }));
+    setIsNewForm(true);
     setFormLoaded(true);
   }, [formIdParam, isLiveView]);
-
-  // 2. Auto-Save Draft to LocalStorage
+  // 2. Auto-Save Draft to Backend
   useEffect(() => {
-    if (!formId || isLiveView) return;
+    if (!formId || isLiveView || !formLoaded) return;
 
-    const existingForms: RackForm[] = JSON.parse(localStorage.getItem("rack_forms") || "[]");
-    const updatedTime = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-
-    const currentForm: RackForm = {
+    const token = localStorage.getItem("rack_token");
+    const payload = {
       id: formId,
       title: title || "Untitled Form",
       description: description || "",
       status,
-      createdAt: createdAt || "Today",
-      updatedAt: updatedTime,
       settings,
       questions,
-      responses,
     };
 
-    const index = existingForms.findIndex((f) => f.id === formId);
-    if (index >= 0) {
-      existingForms[index] = currentForm;
-    } else {
-      existingForms.push(currentForm);
-    }
+    const timer = setTimeout(() => {
+      const request = isNewForm
+        ? fetch(`${API_BASE}/api/forms`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+            body: JSON.stringify(payload),
+          })
+        : fetch(`${API_BASE}/api/forms/${formId}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+            body: JSON.stringify(payload),
+          });
 
-    localStorage.setItem("rack_forms", JSON.stringify(existingForms));
-    setUpdatedAt(updatedTime);
-    setSavedNotice(true);
-    const timer = setTimeout(() => setSavedNotice(false), 1500);
+      request
+        .then((res) => {
+          if (res.ok && isNewForm) setIsNewForm(false);
+          setUpdatedAt(new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }));
+          setSavedNotice(true);
+          setTimeout(() => setSavedNotice(false), 1500);
+        })
+        .catch((err) => console.error("Failed to save rack", err));
+    }, 600);
+
     return () => clearTimeout(timer);
-  }, [formId, title, description, status, settings, questions, responses, isLiveView]);
+  }, [formId, title, description, status, settings, questions, isLiveView, formLoaded, isNewForm]);
 
   // Selected Question Helper
   const selectedQuestion = questions.find((q) => q.id === selectedQuestionId);
@@ -286,41 +326,31 @@ function FormBuilderSaaS() {
     updated[idx].options.splice(optIdx, 1);
     setQuestions(updated);
   };
-
   // Live Submission
   const handleLiveSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const existingForms: RackForm[] = JSON.parse(localStorage.getItem("rack_forms") || "[]");
-    const targetIndex = existingForms.findIndex((f) => f.id === formId);
-    if (targetIndex === -1) return;
 
-    const currentForm = existingForms[targetIndex];
-    const votingQ = currentForm.questions.find((q) => q.type === "paid_voting");
+    const votingQ = questions.find((q) => q.type === "paid_voting");
     let totalPaid = 0;
     if (votingQ && liveSelectedCandidate) {
       totalPaid = (votingQ.pricePerVote || 1) * liveVotesCount;
-      if (votingQ.candidates) {
-        const cIndex = votingQ.candidates.findIndex((c) => c.name === liveSelectedCandidate);
-        if (cIndex >= 0) {
-          votingQ.candidates[cIndex].votes += liveVotesCount;
-        }
-      }
     }
 
-    const newResponse: FormResponseItem = {
-      id: "resp_" + Date.now(),
-      submittedAt: new Date().toLocaleString(),
-      email: liveEmail || "Anonymous",
-      answers: liveAnswers,
-      votedCandidate: liveSelectedCandidate || undefined,
-      voteCount: liveSelectedCandidate ? liveVotesCount : undefined,
-      totalPaid: totalPaid > 0 ? totalPaid : undefined,
-    };
-
-    currentForm.responses = [newResponse, ...(currentForm.responses || [])];
-    existingForms[targetIndex] = currentForm;
-    localStorage.setItem("rack_forms", JSON.stringify(existingForms));
-    setLiveSubmitted(true);
+    fetch(`${API_BASE}/api/forms/${formId}/responses`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: liveEmail || "Anonymous",
+        answers: liveAnswers,
+        votedCandidate: liveSelectedCandidate || undefined,
+        voteCount: liveSelectedCandidate ? liveVotesCount : undefined,
+        totalPaid: totalPaid > 0 ? totalPaid : undefined,
+      }),
+    })
+      .then((res) => {
+        if (res.ok) setLiveSubmitted(true);
+      })
+      .catch((err) => console.error("Failed to submit response", err));
   };
 
   const livePublicUrl = typeof window !== "undefined" ? `${window.location.origin}/form?id=${formId}&view=live` : "";
